@@ -1,11 +1,11 @@
 INSERT INTO PhpBoard.Thread (folder,board,name,created,owner) select
-**folder**,'wswym',MsgTitle,Date,PhpBoard.People.id from Message,Users,PhpBoard.People
-where Message.ID=**id** and Message.AuthorID=Users.AuthorID and
+34,'wswym',MsgTitle,Date,PhpBoard.People.id from Message,Users,PhpBoard.People
+where Message.ID=369 and Message.AuthorID=Users.AuthorID and
 Users.Nickname=PhpBoard.People.nickname;
 
 INSERT INTO PhpBoard.Message (thread,author,created,content) select
-LAST_INSERT_ID(),PhpBoard.People.id,Date,MsgText from
-Message,Users,PhpBoard.People where (Message.ID=**id** or
-Message.Thread=**id**)
+LAST_INSERT_ID(),PhpBoard.People.id,Date,REPLACE(MsgText,"<br>","\n") from
+Message,Users,PhpBoard.People where (Message.ID=369 or
+Message.Thread=369)
 and Message.AuthorID=Users.AuthorID and
 Users.Nickname=PhpBoard.People.nickname;
