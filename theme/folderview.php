@@ -20,8 +20,15 @@
 		</td>
 	</tr>
 	<tr>
-		<td width=578 colspan=2>
-			<? print_threads($folder) ?>
+		<td colspan=2 width=578>
+			<table border=0 cellspacing=1>
+				<tr>
+					<td width=378><b>Thread</b></td>
+					<td><b>Author</b></td>
+					<td align=right><b>Started</b></td>
+				</tr>
+				<? print_threads($folder) ?>
+			</table>
 		</td>
 	</tr>
 	<tr>

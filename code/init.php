@@ -23,5 +23,10 @@
 	$unreadtbl="UnreadMessage";
 	$editedtbl="EditedMessage";
 	$sessiontbl="Session";
+
+	# Here we say what fields from the people table to pass on to the message
+	# and thread viewers.
 	
+	$peoplefields="$peopletbl.fullname,$peopletbl.email,$peopletbl.nickname,$peopletbl.phone";
+		
 ?>

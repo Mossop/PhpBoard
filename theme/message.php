@@ -1,3 +1,4 @@
+<?php mark_msg_read($message['id']); ?>
 <table border=1 cellspacing=0 cellpadding=1>
 	<tr>
 		<td>

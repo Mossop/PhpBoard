@@ -12,7 +12,6 @@
 					<tr>
 						<td colspan=2 align=center>
 							<input type="submit" value="Add">
-							<input type="submit" name="request" value="Preview">
 						</td>
 					</tr>
 				</table>
