@@ -451,13 +451,13 @@
 	
 	function board_view()
 	{
-		global $themeroot;
+		global $themeroot,$boardinfo;
 		include $themeroot."boardview.php";
 	}
 	
 	function folder_view($folder)
 	{
-		global $connection,$themeroot,$foldertbl;
+		global $connection,$themeroot,$boardinfo,$foldertbl;
 		if ($folder==0)
 		{
 			board_view();
@@ -478,7 +478,7 @@
 	
 	function thread_view($thread)
 	{
-		global $connection,$themeroot,$threadtbl;
+		global $connection,$themeroot,$threadtbl,$boardinfo;
 		$query=mysql_query("SELECT * FROM $threadtbl WHERE id=$thread;",$connection);
 		if ($threadinfo=mysql_fetch_array($query))
 		{
