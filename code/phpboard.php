@@ -823,6 +823,12 @@
 					error("Could not find the person you are trying to edit.");
 				}
 			}
+			else if (($function=="addcontact")&&(isset($fullname)))
+			{
+				mysql_query("INSERT INTO $peopletbl (fullname) VALUES (\"$fullname\");",$connection);
+				$folder=-1;
+				include $themeroot."contactlist.php";
+			}
 			else if (($function=="edituser")&&(isset($user)))
 			{
 				$folder=-1;
