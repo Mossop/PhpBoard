@@ -1,0 +1,174 @@
+body {
+	margin: 0px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	font-style: normal;
+	font-weight: normal;
+	color: #FFFFFF;
+	text-decoration: none;
+}
+
+td {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	font-style: normal;
+	font-weight: normal;
+	color: #000000;
+	text-decoration: none;
+}
+
+p {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	font-style: normal;
+	font-weight: normal;
+	color: #000000;
+	text-decoration: none;
+      text-align: justify;
+}
+
+h1 {
+	font-size : 16px;
+	font-weight: bold;
+}
+
+h2 {
+	font-size : 14px;
+	font-weight: bold;
+}
+
+h3 {
+	font-size : 12px;
+	font-weight: bold;
+}
+
+h4 {
+	font-size : 11px;
+	font-weight: bold;
+}
+
+img {
+	border: 0px;
+}
+
+a {
+	color: blue;
+	text-decoration: underline;
+}
+
+a:hover {
+	text-decoration: underline;
+	color : Maroon;
+}
+
+.maintitle {
+	font-size: 22px;
+	color: #99CCFF;
+}
+
+.popuplink {
+	color: black;
+	text-decoration: none;
+	font-size : 14px;
+	font-weight: bold;
+}
+
+a.popuplink:hover {
+	color: blue;
+	text-decoration: none;
+}
+
+.oldpopuplink {
+	color: silver;
+	text-decoration: none;
+	font-size : 14px;
+	font-weight: bold;
+}
+
+a.oldpopuplink:hover {
+	text-decoration: none;
+	color: silver;
+}
+
+.textmenulinks {
+	font-weight: bold;
+	color: black;
+	text-decoration: none
+}
+
+a.textmenulinks:hover {
+	color: blue;
+	text-decoration: none;
+}
+
+.toptextmenulinks {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	font-style: normal;
+	font-weight: bold;
+	color: white;
+	text-decoration: none
+}
+
+a.toptextmenulinks {
+	color: white;
+	text-decoration: none;
+}
+
+a.toptextmenulinks:hover {
+	color: white;
+	text-decoration: none;
+}
+
+.breadcrumb {
+	font-size: 10px;
+	color: gray;
+	text-decoration: none;
+}
+
+a:hover.breadcrumb {
+	color: gray;
+}
+
+td.textmenubar {
+	width: 100px;
+}
+
+td.oldpopuplink {
+	width: 100px;
+}
+
+td.popuplink {
+	width: 100px;
+}
+
+td.topmenubar {
+	background: black;
+}
+
+.fullwidth {
+	width: 678px;
+}
+
+td.indented {
+	width: 678px;
+	padding-left: 20px;
+}
+
+.centred {
+	text-align: center;
+}
+
+.copyright {
+	font-size: 10px;
+	color: silver;
+}
+
+.searchbox {
+	font-size: 10px;
+}
+
+.keywordform {
+	display: inline;
+}
+
