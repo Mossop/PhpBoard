@@ -1,23 +1,49 @@
 <?php
 
-	if ($mode!="admin")
+	$canadmin=(is_in_group("admin")||is_in_group("boardadmin")||is_in_group("folderadmin"));
+	if (($mode!="admin")||(!$canadmin))
 	{
 ?>
+
+<table border=0>
+	<tr>
+		<td valign=top>
 			<h1><?= $boardinfo['name']; ?> announcements</h1>
-			<? print_announcements() ?>
+		</td>
+		<td align=right valign=top>
 <?php
 
-		if (is_in_group("admin")||is_in_group("boardadmin")||is_in_group("folderadmin"))
+		if ($canadmin)
 		{
 			print_link("boardview","Administration","mode=admin");
 		}
+?>
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2 width=578>
+			<? print_announcements() ?>
+		</td>
+	</tr>
+</table>
+
+<?php
 	}
 	else
 	{
-		if (is_in_group("admin")||is_in_group("boardadmin")||is_in_group("folderadmin"))
-		{
 ?>
+
+<table border=0>
+	<tr>
+		<td valign=top>
 			<h1><?= $boardinfo['name']; ?> administration</h1>
+		</td>
+		<td align=right valign=top>
+			<?php print_link("boardview","View Announcements"); ?>
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2 width=578>
 			<table>
 <?php
 			if (is_in_group("admin")||is_in_group("boardadmin"))
@@ -40,8 +66,12 @@
 			}
 ?>
 				<tr>
-					<td colspan="3"><hr></td>
+					<td colspan=3><hr></td>
 				</tr>
+<?php
+			if (is_in_group("admin")||is_in_group("folderadmin"))
+			{
+?>
 				<tr>
 					<? print_form_header("addfolder","folder=0"); ?>
 					<td>Create a new subfolder:</td>
@@ -49,10 +79,14 @@
 					<td><input type="submit" value="Create"></td>
 					</form>
 				</tr>
+<?php
+			}
+?>
 			</table>
+		</td>
+	</tr>
+</table>
+
 <?php
 		}
-		print_link("boardview","View Announcements");
-	}
-
 ?>
