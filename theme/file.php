@@ -15,6 +15,6 @@ if (!isset($count))
 		<?= $file['description'] ?>
 	</td>
 	<td align=right width=158>
-		<? print_link("downloadfile",$file['name'],"file=".$file['id']); ?>
+		<? print_link("downloadfile",$file['filename'],"file=".$file['id']); ?>
 	</td>
 </tr>

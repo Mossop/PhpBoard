@@ -83,6 +83,7 @@ CREATE TABLE Message (
 CREATE TABLE File (
 	id		INTEGER AUTO_INCREMENT NOT NULL,
 	name		VARCHAR(30) NOT NULL,
+	filename	VARCHAR(30),
 	message		INTEGER,
 	description	VARCHAR(30),
 	mimetype	VARCHAR(30),

@@ -492,9 +492,9 @@
 		global $threadtbl,$msgtbl,$connection;
 		mysql_query("DELETE FROM $threadtbl WHERE id=$thread;",$connection);
 		$query=mysql_query("SELECT id FROM $msgtbl WHERE thread=$thread;",$connection);
-		while ($msg=mysql_fetch_row($query))
+		while ($msg=mysql_fetch_array($query))
 		{
-			delete_message($msg);
+			delete_message($msg['id']);
 		}
 	}
 	
@@ -893,11 +893,32 @@
 				if (is_uploaded_file($HTTP_POST_FILES['file']['tmp_name']))
 				{
 					$newname=$HTTP_POST_FILES['file']['name'];
-					#Should check for duplicate
-					$query=mysql_query("INSERT INTO $filetbl (name,message,mimetype,description) "
-						."VALUES (\"$newname\",$message,\"".$HTTP_POST_FILES['file']['type']."\",\"$description\");",$connection);
-					$newname=$boardinfo['docroot']."/".$boardinfo['filedir']."/".$newname;
-					move_uploaded_file($HTTP_POST_FILES['file']['tmp_name'],$newname);
+					if (preg_match("/(.*?)\.(.*)/",$newname,$regs))
+					{
+						$start=$regs[1];
+						$end=".".$regs[2];
+					}
+					else
+					{
+						$start=$newname;
+						$end="";
+					}
+					$fileroot=$boardinfo['docroot']."/".$boardinfo['filedir']."/";
+					$count=0;
+					$extra="";
+					while (file_exists($fileroot.$start.$extra.$end))
+					{
+						$count++;
+						$extra="$count";
+						while (strlen($extra)<3)
+						{
+							$extra="0".$extra;
+						}
+					}
+					$fullname=$start.$extra.$end;
+					$query=mysql_query("INSERT INTO $filetbl (name,message,mimetype,description,filename) "
+						."VALUES (\"$fullname\",$message,\"".$HTTP_POST_FILES['file']['type']."\",\"$description\",\"$newname\");",$connection);
+					move_uploaded_file($HTTP_POST_FILES['file']['tmp_name'],$fileroot.$fullname);
 					$query=mysql_query("SELECT thread FROM $msgtbl WHERE id=$message;",$connection);
 					$thread=mysql_fetch_array($query);
 					thread_view($thread['thread']);
