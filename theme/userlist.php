@@ -9,6 +9,7 @@
 		<td><b>Last on</b></td>
 		<td><b>Full Name</b></td>
 		<td></td>
+		<td></td>
 	</tr>
 			<? list_users(); ?>
 </table>

@@ -121,10 +121,14 @@
 	}
 	
 	# Asks if the current user is in the specified group.
-	function is_in_group($group)
+	function is_in_group($group, $user="")
 	{
-		global $loginid,$usergrptbl,$connection;
-		$query=mysql_query("SELECT user_id FROM $usergrptbl WHERE user_id=\"$loginid\" AND (group_id=\"$group\" OR group_id=\"admin\");",$connection);
+		global $usergrptbl,$connection,$loginid;
+		if (strlen($user)==0)
+		{
+			$user=$loginid;
+		}
+		$query=mysql_query("SELECT user_id FROM $usergrptbl WHERE user_id=\"$user\" AND (group_id=\"$group\" OR group_id=\"admin\");",$connection);
 		if (mysql_num_rows($query)>0)
 		{
 			return true;
@@ -369,7 +373,7 @@
 	# Returns true if everything is ok to continue.
 	function check_login()
 	{
-		global $board,$boardinfo,$session,$sessiontbl,$loginid,$passwd,$usertbl,$themeroot,$connection,$function,$webroot;
+		global $board,$boardinfo,$session,$sessiontbl,$loginid,$passwd,$usertbl,$themeroot,$connection,$function,$webroot,$HTTP_GET_VARS,$HTTP_POST_VARS;
 		if ((isset($session))&&(strlen($session)>0))
 		{
 			# Check the existence of the session.
@@ -771,6 +775,20 @@
 				{
 					$contact=mysql_fetch_array($query);
 					include $themeroot."editcontact.php";
+				}
+				else
+				{
+					error("Could not find the person you are trying to edit.");
+				}
+			}
+			else if (($function=="edituser")&&(isset($user)))
+			{
+				$folder=-1;
+				$query=mysql_query("SELECT id FROM $usertbl WHERE id=\"$user\";",$connection);
+				if (mysql_num_rows($query))
+				{
+					$user=mysql_fetch_array($query);
+					include $themeroot."edituser.php";
 				}
 				else
 				{
