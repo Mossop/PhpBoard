@@ -2,6 +2,7 @@
 					<tr>
 						<td><? print_link("boardview","Announcements"); ?></td>
 						<td><? print_link("contactlist","Contacts"); ?></td>
+						<td><? print_link("userlist","Users"); ?></td>
 					</tr>
 				</table>
 			</TD>

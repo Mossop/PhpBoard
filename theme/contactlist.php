@@ -9,6 +9,8 @@
 		<td><b>Email</b></td>
 		<td><b>Phone</b></td>
 		<td></td>
+		<td></td>
+		<td></td>
 	</tr>
 			<? list_contacts(); ?>
 </table>

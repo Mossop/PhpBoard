@@ -138,7 +138,7 @@
 	# Checks if the user is in any of the groups listed (comma seperated).
 	function check_groups($groups)
 	{
-		global $connection,$themeroot,$loginid,$usergrptbl;
+		global $connection,$themeroot,$loginid,$usergrptbl,$folder;
 		$list="('admin',";
 		$grouplist=split(",",$groups);
 		while ($thisgroup=each($grouplist))
@@ -154,6 +154,7 @@
 		else
 		{
 			include $themeroot."noaccess.php";
+			$folder=-1;
 			return false;
 		}
 	}
@@ -263,13 +264,29 @@
 	# Lists all contacts.
 	function list_contacts()
 	{
-		global $peopletbl,$connection,$themeroot,$userinfo;
-		$query=mysql_query("SELECT * FROM $peopletbl;",$connection);
+		global $peopletbl,$connection,$themeroot,$userinfo,$usertbl;
+		$query=mysql_query("select $peopletbl.*, $usertbl.id as user from "
+			."$peopletbl LEFT JOIN $usertbl ON $usertbl.person=$peopletbl.id;",$connection);
 		if (mysql_num_rows($query))
 		{
 			while ($contact=mysql_fetch_array($query))
 			{
 				include $themeroot."contact.php";
+			}
+		}
+	}
+	
+	# Lists all users.
+	function list_users()
+	{
+		global $peopletbl,$connection,$themeroot,$userinfo,$usertbl,$board,$loginid;
+		$query=mysql_query("select $usertbl.id,$usertbl.lastaccess,$peopletbl.fullname from "
+			."$usertbl,$peopletbl WHERE $usertbl.person=$peopletbl.id AND board_id=\"$board\";",$connection);
+		if (mysql_num_rows($query))
+		{
+			while ($user=mysql_fetch_array($query))
+			{
+				include $themeroot."user.php";
 			}
 		}
 	}
@@ -581,6 +598,11 @@
 				include $themeroot."contactlist.php";
 				$folder=-1;
 			}
+			else if ($function=="userlist")
+			{
+				include $themeroot."userlist.php";
+				$folder=-1;
+			}
 			else if (($function=="folderview")&&(isset($folder)))
 			{
 				folder_view($folder);
@@ -589,9 +611,37 @@
 			{
 				thread_view($thread);
 			}
+			else if (($function=="updatecontact")&&(isset($person)))
+			{
+				if (check_groups("contactadmin"))
+				{
+					$query="UPDATE $peopletbl SET  ";
+					if (isset($fullname))
+					{
+						$query=$query."fullname=\"".$fullname."\",";
+					}
+					if (isset($email))
+					{
+						$query=$query."email=\"".$email."\",";
+					}
+					if (isset($nickname))
+					{
+						$query=$query."nickname=\"".$nickname."\",";
+					}
+					if (isset($fullname))
+					{
+						$query=$query."phone=\"".$phone."\",";
+					}
+					$query=substr($query,0,-1);
+					$query=$query." WHERE id=\"$person\";";
+					$query=mysql_query("$query",$connection);
+					include $themeroot."contactlist.php";
+					$folder=-1;
+				}
+			}
 			else if ($function=="updateboard")
 			{
-				if (check_groups("admin,boardadmin"))
+				if (check_groups("boardadmin"))
 				{
 					$query="UPDATE $boardtbl SET  ";
 					if (isset($name))
@@ -612,7 +662,7 @@
 			}
 			else if (($function=="addfolder")&&(isset($folder))&&(isset($name)))
 			{
-				if (check_groups("admin,folderadmin"))
+				if (check_groups("folderadmin"))
 				{
 					$query=mysql_query("INSERT INTO $foldertbl (parent,board,name) VALUES ($folder,\"$board\",\"".$name."\");",$connection);
 					$folder=mysql_insert_id($connection);
@@ -621,7 +671,7 @@
 			}
 			else if (($function=="updatefolder")&&(isset($folder)))
 			{
-				if (check_groups("admin,folderadmin"))
+				if (check_groups("folderadmin"))
 				{
 					$query="UPDATE $foldertbl SET  ";
 					if (isset($name))
@@ -652,9 +702,29 @@
 					thread_view($thread['thread']);
 				}
 			}
+			else if (($function=="deletecontact")&&(isset($person)))
+			{
+				if (check_groups("contactadmin"))
+				{
+					$query=mysql_query("DELETE FROM $peopletbl WHERE id=$person;",$connection);
+					include $themeroot."contactlist.php";
+					$folder=-1;
+				}
+			}
+			else if (($function=="deleteuser")&&(isset($user)))
+			{
+				if (check_groups("useradmin"))
+				{
+					$query=mysql_query("DELETE FROM $usertbl WHERE id=\"$user\";",$connection);
+					$query=mysql_query("DELETE FROM $sessiontbl WHERE user_id=\"$user\";",$connection);
+					$query=mysql_query("DELETE FROM $unreadtbl WHERE user_id=\"$user\";",$connection);
+					include $themeroot."userlist.php";
+					$folder=-1;
+				}
+			}
 			else if (($function=="deletefolder")&&(isset($folder)))
 			{
-				if (check_groups("admin,folderadmin"))
+				if (check_groups("folderadmin"))
 				{
 					$query=mysql_query("SELECT parent FROM $foldertbl WHERE id=$folder;",$connection);
 					if ($row=mysql_fetch_row($query))
@@ -664,6 +734,10 @@
 						if ($folder!=0)
 						{
 							folder_view($folder);
+						}
+						else
+						{
+							board_view();
 						}
 					}
 					else
@@ -679,14 +753,27 @@
 					."FROM $msgtbl WHERE $msgtbl.id=$message;",$connection);
 				if (mysql_num_rows($query))
 				{
-					while ($message=mysql_fetch_array($query))
-					{
-						include $themeroot."editmessage.php";
-					}
+					$message=mysql_fetch_array($query);
+					include $themeroot."editmessage.php";
 				}
 				else
 				{
 					error("Could not find the message you are trying to edit.");
+				}
+			}
+			else if (($function=="editcontact")&&(isset($person)))
+			{
+				$folder=-1;
+				$query=mysql_query("SELECT id,fullname,email,nickname,phone "
+					."FROM $peopletbl WHERE id=$person;",$connection);
+				if (mysql_num_rows($query))
+				{
+					$contact=mysql_fetch_array($query);
+					include $themeroot."editcontact.php";
+				}
+				else
+				{
+					error("Could not find the person you are trying to edit.");
 				}
 			}
 			else if (($function=="deletemessage")&&(isset($message)))
@@ -721,7 +808,7 @@
 			}
 			else if (($function=="addthread")&&(isset($folder)))
 			{
-				if (($folder!=0)||(check_groups("admin,boardadmin")))
+				if (($folder!=0)||(check_groups("boardadmin")))
 				{
 					if (!isset($request))
 					{
