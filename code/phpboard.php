@@ -190,27 +190,27 @@
 	
 	function check_login()
 	{
-		global $session,$sessiontbl,$loginid,$usertbl,$themedir,$connection,$function;
+		global $board,$boardinfo,$session,$sessiontbl,$loginid,$passwd,$usertbl,$themeroot,$connection,$function,$webroot;
 		if ((isset($session))&&(strlen($session)>0))
 		{
 			# Check the existence of the session.
 			$query=mysql_query("SELECT user_id FROM $sessiontbl WHERE id=$session AND board_id=\"$board\";",$connection);
-			if (mysql_num_rows($query)>0))
+			if (mysql_num_rows($query)>0)
 			{
-				$loginid=mysql_result($query,0,0)
+				$loginid=mysql_result($query,0,0);
 				if ($function=="logout")
 				{
 					mysql_query("DELETE FROM $sessiontbl WHERE id=$session;",$connection);
 					SetCookie("session","",time()-3600);
 					send_header();
-					include $themedir."logout.php";
+					include $themeroot."logout.php";
 					send_footer();
 					return false;
 				}
 				else
 				{
 					# Update the expiry time of the session.
-					$expiry=to_mysql_date(time()+$boardinfo['timeout']);
+					$expiry=to_mysql_date(time()+$boardinfo['timeout']*60);
 					mysql_query("UPDATE $sessiontbl SET expiry=\"$expiry\" WHERE id=$session;",$connection);
 					return true;
 				}
@@ -219,7 +219,7 @@
 			{
 				SetCookie("session","",time()-3600);
 				send_header();
-				include $themedir."relogin.php";
+				include $themeroot."relogin.php";
 				send_footer();
 				return false;
 			}
@@ -231,7 +231,7 @@
 				$query=mysql_query("SELECT id FROM $usertbl WHERE id=\"$loginid\" AND password=PASSWORD(\"$passwd\") AND board_id=\"$board\";",$connection);
 				if (mysql_num_rows($query)==1)
 				{
-					$expiry=to_mysql_date(time()+$boardinfo['timeout']);
+					$expiry=to_mysql_date(time()+$boardinfo['timeout']*60);
 					# Check for an old session that can be reused
 					$query=mysql_query("SELECT id FROM $sessiontbl WHERE user_id=\"$loginid\" AND board_id=\"$board\";",$connection);
 					if (mysql_num_rows($query)>0)
@@ -260,7 +260,7 @@
 			else
 			{
 				send_header();
-				include $themedir."login.php";
+				include $themeroot."login.php";
 				send_footer();
 				return false;
 			}
