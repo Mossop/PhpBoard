@@ -1,14 +1,13 @@
-<?php mark_msg_read($message['id']); ?>
-<table border=1 cellspacing=0 cellpadding=1>
+<table border=0 cellspacing=0 cellpadding=1>
 	<tr>
-		<td>
+		<td class="messageheader">
 			<table>
 				<tr>
-					<td align=left>Posted by <?= $message['nickname']; ?></td>
-					<td align=right><?= mysql_to_nice($message['created']); ?></td>
+					<td align=left class="messageheader">Posted by <?= $message['nickname']; ?></td>
+					<td align=right class="messageheader"><?= mysql_to_nice($message['created']); ?></td>
 				</tr>
 				<tr>
-					<td colspan=2 width=578>
+					<td colspan=2 width=578 class="messageheader">
 						<?php
 							if ((is_in_group("admin"))||(is_in_group("messageadmin"))||($message['author']==$userinfo['id']))
 							{
@@ -21,9 +20,10 @@
 		</td>
 	</tr>
 	<tr>
-		<td width=578>
+		<td width=578 class="messagebody">
 			<?= nl2br($message['content']); ?>
 		</td>
 	</tr>
 </table>
+<?php mark_msg_read($message['id']); ?>
 <br>

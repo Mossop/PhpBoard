@@ -7,12 +7,14 @@ INSERT INTO User
 (id,password,board_id,person)
 VALUES
 ('dave',PASSWORD('Tequila8791'),'wswym',1),
+('mike',PASSWORD('nma640v'),'wswym',3),
 ('test',PASSWORD('test'),'wswym',2);
 
 INSERT INTO People
 (id,fullname,email,phone,nickname)
 VALUES
 (1,'Dave Townsend','dtownsend@iee.org','07909962336','Dave'),
+(3,'Mike Brownsword','mbrownsword@iee.org','07855805669','Mike'),
 (2,'Test User','flibble@iee.org','','Test');
 
 INSERT INTO Groups

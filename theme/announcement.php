@@ -1,13 +1,13 @@
-<table border=1 cellspacing=0 cellpadding=1>
+<table border=0 cellspacing=0 cellpadding=1>
 	<tr>
-		<td>
+		<td class="messageheader">
 			<table>
 				<tr>
-					<td align=left>Announcement by <?= $announcement['nickname']; ?></td>
-					<td align=right><?= mysql_to_nice($announcement['created']); ?></td>
+					<td align=left class="messageheader">Announcement by <?= $announcement['nickname']; ?></td>
+					<td align=right class="messageheader"><?= mysql_to_nice($announcement['created']); ?></td>
 				</tr>
 				<tr>
-					<td colspan=2 width=578>
+					<td colspan=2 width=578 class="messageheader">
 						<b><?= $announcement['name']; ?></b>
 					</td>
 				</tr>
@@ -15,7 +15,7 @@
 		</td>
 	</tr>
 	<tr>
-		<td>
+		<td class="messagebody">
 			<?= nl2br($announcement['content']); ?>
 		</td>
 	</tr>

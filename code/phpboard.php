@@ -245,6 +245,20 @@
 		}
 	}
 	
+	# Lists all contacts.
+	function list_contacts()
+	{
+		global $peopletbl,$connection,$themeroot;
+		$query=mysql_query("SELECT * FROM $peopletbl;",$connection);
+		if (mysql_num_rows($query))
+		{
+			while ($contact=mysql_fetch_array($query))
+			{
+				include $themeroot."contact.php";
+			}
+		}
+	}
+	
 	# Prints a tree view of folders starting from a given folder.
 	function print_folder_tree($root)
 	{
@@ -488,6 +502,10 @@
 			if ((!isset($function))||($function=="boardview"))
 			{
 				include $themeroot."boardview.php";
+			}
+			else if ($function=="contactlist")
+			{
+				include $themeroot."contactlist.php";
 			}
 			else if (($function=="folderview")&&(isset($folder)))
 			{
