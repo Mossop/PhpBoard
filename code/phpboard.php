@@ -605,6 +605,27 @@
 			$query=mysql_query("SELECT $peopletbl.*,$usertbl.lastaccess FROM $peopletbl,$usertbl WHERE $usertbl.person=$peopletbl.id AND $usertbl.id=\"$loginid\" AND $usertbl.board_id=\"$board\";");
 			$userinfo=mysql_fetch_array($query);
 			
+			if (($function=="downloadfile")&&(isset($file)))
+			{
+				$query=mysql_query("SELECT * FROM $filetbl WHERE id=$file;",$connection);
+				if ($fileinfo=mysql_fetch_array($query))
+				{
+					header("Location: ".$boardinfo['webroot']."/".$boardinfo['filedir']."/".$fileinfo['name']);
+					#Header("Content-type: ".$fileinfo['mimetype']);
+					#$fn=fopen($boardinfo['docroot']."/".$boardinfo['filedir']."/".$fileinfo['name'],"r");
+					#fpassthru($fn);
+				}
+				else
+				{
+					send_header();
+					include $themeroot."boardheader.php";
+					error("File not found");
+					include $themeroot."boardfooter.php";
+					send_footer();
+				}
+			}
+			else
+			{
 			if ($function=="logout")
 			{
 				SetCookie("session",time()-3600);
@@ -969,6 +990,7 @@
 			
 			include $themeroot."boardfooter.php";
 			send_footer();
+		}
 		}
 	}
 	else
