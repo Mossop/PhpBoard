@@ -9,7 +9,7 @@
 				<tr>
 					<td colspan=2 width=578 class="messageheader">
 						<?php
-							if ((is_in_group("admin"))||(is_in_group("messageadmin"))||($message['author']==$userinfo['id']))
+							if ((is_in_group("messageadmin"))||($message['author']==$userinfo['id']))
 							{
 								print_link("deletemessage","Delete","message=".$message['id']);
 							}

@@ -1,6 +1,6 @@
 <?php
 
-	$canadmin=(is_in_group("admin")||is_in_group("boardadmin")||is_in_group("folderadmin"));
+	$canadmin=(is_in_group("boardadmin")||is_in_group("folderadmin"));
 	if (($mode!="admin")||(!$canadmin))
 	{
 ?>
@@ -27,7 +27,7 @@
 	</tr>
 <?php
 
-	if ((is_in_group("admin"))||(is_in_group("boardadmin")))
+	if (is_in_group("boardadmin"))
 	{
 		$folder=0;
 ?>
@@ -69,7 +69,7 @@
 		<td colspan=2 width=578>
 			<table>
 <?php
-			if (is_in_group("admin")||is_in_group("boardadmin"))
+			if (is_in_group("boardadmin"))
 			{
 ?>
 				<? print_form_header("updateboard"); ?>
@@ -92,7 +92,7 @@
 					<td colspan=3><hr></td>
 				</tr>
 <?php
-			if (is_in_group("admin")||is_in_group("folderadmin"))
+			if (is_in_group("folderadmin"))
 			{
 ?>
 				<tr>

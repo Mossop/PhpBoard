@@ -116,7 +116,7 @@
 	function is_in_group($group)
 	{
 		global $loginid,$usergrptbl,$connection;
-		$query=mysql_query("SELECT user_id FROM $usergrptbl WHERE user_id=\"$loginid\" AND group_id=\"$group\";",$connection);
+		$query=mysql_query("SELECT user_id FROM $usergrptbl WHERE user_id=\"$loginid\" AND group_id=\"$group\" OR group_id=\"admin\";",$connection);
 		if (mysql_num_rows($query)>0)
 		{
 			return true;
@@ -131,7 +131,7 @@
 	function check_groups($groups)
 	{
 		global $connection,$themeroot,$loginid,$usergrptbl;
-		$list='(';
+		$list="('admin',";
 		$grouplist=split(",",$groups);
 		while ($thisgroup=each($grouplist))
 		{
@@ -610,7 +610,7 @@
 			{
 				$query=mysql_query("SELECT author,thread FROM $msgtbl WHERE id=$message;",$connection);
 				$msginfo=mysql_fetch_array($query);
-				if ((is_in_group("admin"))||(is_in_group("messageadmin"))||($msginfo[author]==$userinfo['id']))
+				if ((is_in_group("messageadmin"))||($msginfo[author]==$userinfo['id']))
 				{
 					delete_message($message);
 					$query=mysql_query("SELECT * FROM $threadtbl WHERE id=".$msginfo['thread'].";",$connection);
@@ -627,7 +627,7 @@
 			{
 				$query=mysql_query("SELECT owner,folder FROM $threadtbl WHERE id=$thread;",$connection);
 				$threadinfo=mysql_fetch_array($query);
-				if ((is_in_group("admin"))||(is_in_group("messageadmin"))||($threadinfo['owner']==$userinfo['id']))
+				if ((is_in_group("messageadmin"))||($threadinfo['owner']==$userinfo['id']))
 				{
 					delete_thread($thread);
 					$folder=$threadinfo['folder'];

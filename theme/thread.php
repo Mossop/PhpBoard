@@ -23,7 +23,7 @@
 	</td>
 	<td>
 		<?php
-			if ((is_in_group("messageadmin"))||(is_in_group("admin"))||($thread['owner']==$userinfo['id']))
+			if ((is_in_group("messageadmin"))||($thread['owner']==$userinfo['id']))
 			{
 				print_link("deletethread","Delete","thread=".$thread['id']);
 			}

@@ -1,6 +1,6 @@
 <?php
 
-	$canadmin=(is_in_group("admin")||is_in_group("folderadmin"));
+	$canadmin=is_in_group("folderadmin");
 	if (($mode!="admin")||(!$canadmin))
 	{
 ?>
