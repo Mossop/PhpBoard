@@ -94,7 +94,7 @@ CREATE TABLE UnreadMessage (
 
 CREATE TABLE EditedMessage (
 	message_id	INTEGER NOT NULL,
-	user_id		VARCHAR(8) NOT NULL,
+	person		INTEGER NOT NULL,
 	altered		DATETIME,
 	PRIMARY KEY (message_id, user_id)
 );

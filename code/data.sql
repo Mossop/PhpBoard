@@ -23,6 +23,8 @@ VALUES
 ('admin'),
 ('folderadmin'),
 ('messageadmin'),
+('useradmin'),
+('contactadmin'),
 ('boardadmin');
 
 INSERT INTO UserGroup

@@ -11,6 +11,8 @@
 						<?php
 							if ((is_in_group("messageadmin"))||($message['author']==$userinfo['id']))
 							{
+								print_link("editmessage","Edit","message=".$message['id']);
+								echo " ";
 								print_link("deletemessage","Delete","message=".$message['id']);
 							}
 						?>

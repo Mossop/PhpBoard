@@ -29,6 +29,12 @@
 		include $themeroot."sitefooter.php";
 	}
 	
+	# Sends an error page to the user
+	function error($message)
+	{
+		include $themeroot."error.php";
+	}
+	
 	# Converts a timestamp to a nice display date.
 	function to_nice_date($timestamp)
 	{
@@ -443,6 +449,47 @@
 		}
 	}
 	
+	function board_view()
+	{
+		global $themeroot;
+		include $themeroot."boardview.php";
+	}
+	
+	function folder_view($folder)
+	{
+		global $connection,$themeroot,$foldertbl;
+		if ($folder==0)
+		{
+			board_view();
+		}
+		else
+		{
+			$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
+			if ($folderinfo=mysql_fetch_array($query))
+			{
+				include $themeroot."folderview.php";
+			}
+			else
+			{
+				error("The folder could not be found");
+			}
+		}
+	}
+	
+	function thread_view($thread)
+	{
+		global $connection,$themeroot,$threadtbl;
+		$query=mysql_query("SELECT * FROM $threadtbl WHERE id=$thread;",$connection);
+		if ($threadinfo=mysql_fetch_array($query))
+		{
+			include $themeroot."threadview.php";
+		}
+		else
+		{
+			error("The thread does not exist");
+		}
+	}
+	
 	# Load the board information
   include "init.php";
 
@@ -501,7 +548,7 @@
 			# Include the relevant file for the requested function
 			if ((!isset($function))||($function=="boardview"))
 			{
-				include $themeroot."boardview.php";
+				board_view();
 			}
 			else if ($function=="contactlist")
 			{
@@ -509,27 +556,11 @@
 			}
 			else if (($function=="folderview")&&(isset($folder)))
 			{
-				$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
-				if ($folderinfo=mysql_fetch_array($query))
-				{
-					include $themeroot."folderview.php";
-				}
-				else
-				{
-					include $themeroot."error.php";
-				}
+				folder_view($folder);
 			}
 			else if (($function=="threadview")&&(isset($thread)))
 			{
-				$query=mysql_query("SELECT * FROM $threadtbl WHERE id=$thread;",$connection);
-				if ($threadinfo=mysql_fetch_array($query))
-				{
-					include $themeroot."threadview.php";
-				}
-				else
-				{
-					include $themeroot."error.php";
-				}
+				thread_view($thread);
 			}
 			else if ($function=="updateboard")
 			{
@@ -549,7 +580,7 @@
 					$query=mysql_query("$query",$connection);
 					$query=mysql_query("SELECT * FROM $boardtbl WHERE id=\"$board\";",$connection);
 					$boardinfo=mysql_fetch_array($query);
-					include $themeroot."boardview.php";
+					board_view();
 				}
 			}
 			else if (($function=="addfolder")&&(isset($folder))&&(isset($name)))
@@ -558,9 +589,7 @@
 				{
 					$query=mysql_query("INSERT INTO $foldertbl (parent,board,name) VALUES ($folder,\"$board\",\"".$name."\");",$connection);
 					$folder=mysql_insert_id($connection);
-					$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
-					$folderinfo=mysql_fetch_array($query);
-					include $themeroot."folderview.php";
+					folder_view($folder);
 				}
 			}
 			else if (($function=="updatefolder")&&(isset($folder)))
@@ -574,10 +603,26 @@
 					}
 					$query=substr($query,0,-1);
 					$query=$query." WHERE id=\"$folder\";";
-					$query=mysql_query("$query",$connection);
-					$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
-					$folderinfo=mysql_fetch_array($query);
-					include $themeroot."folderview.php";
+					$query=mysql_query($query,$connection);
+					folder_view($folder);
+				}
+			}
+			else if (($function=="updatemessage")&&(isset($message)))
+			{
+				if (check_groups("messageadmin"))
+				{
+					$query=mysql_query("SELECT thread FROM $msgtbl WHERE id=$message",$connection);
+					$thread=mysql_fetch_array($query);
+					$query="UPDATE $msgtbl SET  ";
+					if (isset($content))
+					{
+						$query=$query."content=\"".$content."\",";
+					}
+					$query=substr($query,0,-1);
+					$query=$query." WHERE id=\"$message\";";
+					$query=mysql_query($query,$connection);
+					mysql_query("INSERT INTO $editedtbl (message_id,person,altered) VALUES ($message,".$userinfo['id'].",NOW());",$connection);
+					thread_view($thread['thread']);
 				}
 			}
 			else if (($function=="deletefolder")&&(isset($folder)))
@@ -591,19 +636,29 @@
 						$folder=$row[0];
 						if ($folder!=0)
 						{
-							$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
-							$folderinfo=mysql_fetch_array($query);
-							include $themeroot."folderview.php";
-						}
-						else
-						{
-							include $themeroot."boardview.php";
+							folder_view($folder);
 						}
 					}
 					else
 					{
-						include $themeroot."error.php";
+						error("The folder could not be found");
 					}
+				}
+			}
+			else if (($function=="editmessage")&&(isset($message)))
+			{
+				$query=mysql_query("SELECT $msgtbl.id,$msgtbl.content,$msgtbl.created,$msgtbl.author "
+					."FROM $msgtbl WHERE $msgtbl.id=$message;",$connection);
+				if (mysql_num_rows($query))
+				{
+					while ($message=mysql_fetch_array($query))
+					{
+						include $themeroot."editmessage.php";
+					}
+				}
+				else
+				{
+					error("Could not find the message you are trying to edit.");
 				}
 			}
 			else if (($function=="deletemessage")&&(isset($message)))
@@ -613,10 +668,7 @@
 				if ((is_in_group("messageadmin"))||($msginfo[author]==$userinfo['id']))
 				{
 					delete_message($message);
-					$query=mysql_query("SELECT * FROM $threadtbl WHERE id=".$msginfo['thread'].";",$connection);
-					$threadinfo=mysql_fetch_array($query);
-					$thread=$msginfo['thread'];
-					include $themeroot."threadview.php";
+					thread_view($msginfo['thread']);
 				}
 				else
 				{
@@ -630,10 +682,7 @@
 				if ((is_in_group("messageadmin"))||($threadinfo['owner']==$userinfo['id']))
 				{
 					delete_thread($thread);
-					$folder=$threadinfo['folder'];
-					$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
-					$folderinfo=mysql_fetch_array($query);
-					include $themeroot."folderview.php";
+					folder_view($threadinfo['folder']);
 				}
 				else
 				{
@@ -658,9 +707,7 @@
 							$mesg=mysql_insert_id($connection);
 							mysql_query("INSERT INTO $unreadtbl (user_id,message_id) "
 								."SELECT id,$mesg FROM $usertbl WHERE board_id=\"$board\" AND id!=\"$loginid\";",$connection);
-							$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
-							$folderinfo=mysql_fetch_array($query);
-							include $themeroot."folderview.php";
+							folder_view($folder);
 						}
 					}
 					else
@@ -677,9 +724,7 @@
 					$mesg=mysql_insert_id($connection);
 					mysql_query("INSERT INTO $unreadtbl (user_id,message_id) "
 						."SELECT id,$mesg FROM $usertbl WHERE board_id=\"$board\" AND id!=\"$loginid\";",$connection);
-					$query=mysql_query("SELECT * FROM $threadtbl WHERE id=$thread;",$connection);
-					$threadinfo=mysql_fetch_array($query);
-					include $themeroot."threadview.php";
+					thread_view($thread);
 				}
 				else
 				{
