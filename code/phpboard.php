@@ -54,13 +54,43 @@
 		}
 	}
 	
-	Converts a mysql date to a nice date, convenience method.
+	# Converts a mysql date to a nice date, convenience method.
 	function mysql_to_nice($datestr)
 	{
 		return to_nice_date(from_mysql_date($datestr));
 	}
 	
-	Asks if a particular message is unread for the current user.
+	# Asks if a thread contains any unread messages for the current user.
+	function is_thread_unread($threadid)
+	{
+		global $unreadtbl,$msgtbl,$threadtbl,$loginid,$connection;
+		$query=mysql_query("SELECT $msgtbl.id FROM $unreadtbl,$msgtbl,$threadtbl"
+			." WHERE $unreadtbl.message_id=$msgtbl.id AND $msgtbl.thread=$threadtbl.id"
+			." AND $unreadtbl.user_id=\"$loginid\" AND $threadtbl.id=$threadid;",$connection);
+		if (mysql_num_rows($query)>0)
+		{
+			return true;
+		}	
+		else
+		{
+			return false;
+		}
+	}
+	
+	# Marks all messages in the thread as read.
+	function mark_thread_read($threadid)
+	{
+		global $unreadtbl,$msgtbl,$threadtbl,$loginid,$connection;
+		$query=mysql_query("SELECT $msgtbl.id FROM $unreadtbl,$msgtbl,$threadtbl"
+			." WHERE $unreadtbl.message_id=$msgtbl.id AND $msgtbl.thread=$threadtbl.id"
+			." AND $unreadtbl.user_id=\"$loginid\" AND $threadtbl.id=$threadid;",$connection);
+		while ($msg=mysql_fetch_row($query))
+		{
+			mysql_query("DELETE FROM $unreadtbl WHERE user_id=\"$loginin\" AND message_id=".$msg[0].";",$connection);
+		}
+	}
+	
+	# Asks if a particular message is unread for the current user.
 	function is_msg_unread($messageid)
 	{
 		global $unreadtbl,$connection,$loginid;
@@ -361,7 +391,8 @@
 			}
 			else
 			{
-				include $themeroot."error.php";
+				# Allows a theme to add its own functions.
+				include $themeroot."themefunc.php";
 			}
 			
 			send_footer();

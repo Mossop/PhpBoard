@@ -4,10 +4,10 @@
 			<h2>
 <?php
 
-	if (is_unread($message['id']))
+	if (is_msg_unread($message['id']))
 	{
 		echo "<em>".$message['subject']."</em>";
-		mark_as_read($message['id']);
+		mark_msg_read($message['id']);
 	}
 	else
 	{

@@ -6,7 +6,7 @@
 			<? print_announcements() ?>
 <?php
 
-	if (is_group("admin")||is_group("folderadmin"))
+	if (is_in_group("admin")||is_in_group("folderadmin"))
 	{
 		echo "<hr>";
 	}
