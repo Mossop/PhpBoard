@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS Board;
 DROP TABLE IF EXISTS User;
+DROP TABLE IF EXISTS People;
 DROP TABLE IF EXISTS Groups;
 DROP TABLE IF EXISTS UserGroup;
 DROP TABLE IF EXISTS Folder;
@@ -25,12 +26,18 @@ CREATE TABLE Board (
 CREATE TABLE User (
 	id		VARCHAR(8) NOT NULL,
 	password	CHAR(16),
+	board_id	VARCHAR(8) NOT NULL,
+	lastaccess	DATETIME,
+	person		INTEGER NOT NULL,
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE People (
+	id		INTEGER AUTO_INCREMENT NOT NULL,
 	fullname	VARCHAR(30),
-	board_id	VARCHAR(8),
 	email		VARCHAR(30),
 	nickname	VARCHAR(20),
 	phone		VARCHAR(20),
-	lastaccess	DATETIME,
 	PRIMARY KEY (id)
 );
 
@@ -59,7 +66,7 @@ CREATE TABLE Thread (
 	board		VARCHAR(8),
 	name		VARCHAR(40),
 	created		DATETIME,
-	owner		VARCHAR(8),
+	owner		INTEGER,
 	PRIMARY KEY (id)
 );
 
