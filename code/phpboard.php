@@ -386,6 +386,48 @@
 		}
 	}
 	
+	# Deletes a message and all files associated with it.
+	function delete_message($message)
+	{
+		global $msgtbl,$filetbl,$connection;
+		mysql_query("DELETE FROM $msgtbl WHERE id=$msg;",$connection);
+		$query=mysql_query("SELECT name FROM $filetbl WHERE message=$msg;",$connection);
+		while ($msg=mysql_fetch_row($query))
+		{
+			# Need to delete the file!!
+		}
+		mysql_query("DELETE FROM $filetbl WHERE message=$msg;",$connection);
+	}
+	
+	# Deletes a thread and all messages associated with it.
+	function delete_thread($thread)
+	{
+		global $threadtbl,$msgtbl,$connection;
+		mysql_query("DELETE FROM $threadtbl WHERE id=$thread;",$connection);
+		$query=mysql_query("SELECT id FROM $msgtbl WHERE thread=$thread;",$connection);
+		while ($msg=mysql_fetch_row($query))
+		{
+			delete_message($msg);
+		}
+	}
+	
+	# Deletes a folder and all threads and messages associated with it.
+	function delete_folder($folder)
+	{
+		global $foldertbl,$threadtbl,$connection;
+		mysql_query("DELETE FROM $foldertbl WHERE id=$folder;",$connection);
+		$query=mysql_query("SELECT id FROM $threadtbl WHERE folder=$folder;",$connection);
+		while ($thread=mysql_fetch_row($query))
+		{
+			delete_thread($thread[0]);
+		}
+		$query=mysql_query("SELECT id FROM $foldertbl WHERE parent=$folder;",$connection);
+		while ($sub=mysql_fetch_row($query))
+		{
+			delete_folder($sub[0]);
+		}
+	}
+	
 	# Load the board information
   include "init.php";
 
@@ -486,13 +528,7 @@
 					$query=mysql_query("SELECT parent FROM $foldertbl WHERE id=$folder;",$connection);
 					if ($row=mysql_fetch_row($query))
 					{
-						mysql_query("DELETE FROM $foldertbl WHERE id=$folder;",$connection);
-						$query=mysql_query("SELECT id FROM $threadtbl WHERE folder=$folder;",$connection);
-						while ($thread=mysql_fetch_row($query))
-						{
-							mysql_query("DELETE FROM $msgtbl WHERE thread=".$thread[0].";",$connection);
-						}
-						mysql_query("DELETE FROM $threadtbl WHERE folder=$folder;",$connection);
+						delete_folder($folder);
 						$folder=$row[0];
 						if ($folder!=0)
 						{
