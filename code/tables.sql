@@ -67,7 +67,6 @@ CREATE TABLE Message (
 	thread		INTEGER,
 	author		INTEGER,
 	created		DATETIME,
-	subject		VARCHAR(40),
 	content		TEXT,
 	PRIMARY KEY (id)
 );

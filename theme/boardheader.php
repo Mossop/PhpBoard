@@ -1,4 +1,4 @@
-<table border=0>
+<table border=1>
 	<tr>
-		<td></td>
-		<td rowspan=2 valign=top>
+		<td height=0></td>
+		<td width=578 rowspan=2 valign=top>

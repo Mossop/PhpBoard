@@ -1,7 +1,7 @@
 INSERT INTO Board
 (id,name,webroot,docroot,codedir,themedir,timeout,admin)
 VALUES
-('wswym','Wales South West Younger Members Board','http://eeguinness.swan.ac.uk/~dave/PhpBoard','/home/dave/public_html/PhpBoard','code','theme',120,'dave');
+('wswym','WSWYM Bulletin Board','http://eeguinness.swan.ac.uk/~dave/PhpBoard','/home/dave/public_html/PhpBoard','code','theme',120,'dave');
 
 INSERT INTO User
 (id,password,fullname,board_id,email,nickname)

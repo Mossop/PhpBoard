@@ -127,6 +127,29 @@
 		}
 	}
 	
+	# Checks if the user is in any of the groups listed (comma seperated).
+	function check_groups($groups)
+	{
+		global $connection,$themeroot,$loginid,$usergrptbl;
+		$list='(';
+		$grouplist=split(",",$groups);
+		while ($thisgroup=each($grouplist))
+		{
+			$list=$list."'".$thisgroup[1]."',";
+		}
+		$list=substr($list,0,-1).")";
+		$query=mysql_query("SELECT group_id FROM $usergrptbl WHERE user_id=\"$loginid\" AND group_id IN $list;",$connection);
+		if (mysql_num_rows($query)>0)
+		{
+			return true;
+		}
+		else
+		{
+			include $themeroot."noaccess.php";
+			return false;
+		}
+	}
+	
 	# Prints a url link to a function of the board.
 	#
 	# $function is the function to be called.
@@ -152,6 +175,24 @@
 			$url=$url."&sessionurl=$session";
 		}
 		echo "<a href=\"$url\">$description</a>";
+	}
+	
+	# Prints a form header for a function of the board.
+	function print_form_header($function,$params = "")
+	{
+		echo "<form action=\"".$webroot."phpboard.php\" method=post>\n";
+		echo "<input type=hidden name=\"function\" value=\"$function\">\n";
+		settype($name,"string");
+		settype($val,"string");
+		if (strlen($params)>0)
+		{
+			$paramlist=split("&",$params);
+			while ($thisone=each($paramlist))
+			{
+				list($name,$value)=split("=",$thisone['value'],2);
+				echo "<input type=hidden name=\"$name\" value=\"$value\">\n";
+			}
+		}
 	}
 	
 	# Displays the given messages using the theme.
@@ -305,6 +346,7 @@
 		{
 			if ((isset($loginid))&&(isset($passwd)))
 			{
+				$loginid=strtolower($loginid);
 				$query=mysql_query("SELECT id FROM $usertbl WHERE id=\"$loginid\" AND password=PASSWORD(\"$passwd\") AND board_id=\"$board\";",$connection);
 				if (mysql_num_rows($query)==1)
 				{
@@ -405,14 +447,69 @@
 			else if (($function=="folderview")&&(isset($folder)))
 			{
 				$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
-				$folderinfo=mysql_fetch_array($query);
-				include $themeroot."folderview.php";
+				if ($folderinfo=mysql_fetch_array($query))
+				{
+					include $themeroot."folderview.php";
+				}
+				else
+				{
+					include $themeroot."error.php";
+				}
 			}
 			else if (($function=="threadview")&&(isset($thread)))
 			{
 				$query=mysql_query("SELECT * FROM $threadtbl WHERE id=$thread;",$connection);
-				$threadinfo=mysql_fetch_array($query);
-				include $themeroot."threadview.php";
+				if ($threadinfo=mysql_fetch_array($query))
+				{
+					include $themeroot."threadview.php";
+				}
+				else
+				{
+					include $themeroot."error.php";
+				}
+			}
+			else if (($function=="addfolder")&&(isset($folder))&&(isset($name)))
+			{
+				if (check_groups("admin,folderadmin"))
+				{
+					$query=mysql_query("INSERT INTO $foldertbl (parent,board,name) VALUES ($folder,\"$board\",\"$name\");",$connection);
+					$folder=mysql_insert_id($connection);
+					$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
+					$folderinfo=mysql_fetch_array($query);
+					include $themeroot."folderview.php";
+				}
+			}
+			else if (($function=="deletefolder")&&(isset($folder)))
+			{
+				if (check_groups("admin,folderadmin"))
+				{
+					$query=mysql_query("SELECT parent FROM $foldertbl WHERE id=$folder;",$connection);
+					if ($row=mysql_fetch_row($query))
+					{
+						mysql_query("DELETE FROM $foldertbl WHERE id=$folder;",$connection);
+						$query=mysql_query("SELECT id FROM $threadtbl WHERE folder=$folder;",$connection);
+						while ($thread=mysql_fetch_row($query))
+						{
+							mysql_query("DELETE FROM $msgtbl WHERE thread=".$thread[0].";",$connection);
+						}
+						mysql_query("DELETE FROM $threadtbl WHERE folder=$folder;",$connection);
+						$folder=$row[0];
+						if ($folder!=0)
+						{
+							$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
+							$folderinfo=mysql_fetch_array($query);
+							include $themeroot."folderview.php";
+						}
+						else
+						{
+							include $themeroot."boardview.php";
+						}
+					}
+					else
+					{
+						include $themeroot."error.php";
+					}
+				}
 			}
 			else
 			{
