@@ -29,6 +29,7 @@ CREATE TABLE User (
 	board_id	VARCHAR(8),
 	email		VARCHAR(30),
 	nickname	VARCHAR(20),
+	phone		VARCHAR(20),
 	lastaccess	DATETIME,
 	PRIMARY KEY (id)
 );
@@ -48,7 +49,7 @@ CREATE TABLE Folder (
 	id		INTEGER AUTO_INCREMENT NOT NULL,
 	parent		INTEGER,
 	board		VARCHAR(8),
-	name		VARCHAR(20),
+	name		VARCHAR(50),
 	PRIMARY KEY (id)
 );
 
