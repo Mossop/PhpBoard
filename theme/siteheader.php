@@ -14,7 +14,7 @@
       <TD width=100 align=center valign=top rowspan=2>
         <IMG src="<?= $webroot; ?>images/logo_white_lion.gif" ALT="IEE Logo">
       </TD>
-      <TD vAlign=top align=left class=fullwidth>
+      <TD vAlign=top align=left class=fullwidth colspan=2>
         <IMG src="<?= $webroot; ?>images/collage_branches.jpg" alt="Communities image">
       </TD>
     </TR>

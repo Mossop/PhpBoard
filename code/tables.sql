@@ -19,12 +19,12 @@ CREATE TABLE Board (
 	codedir		VARCHAR(20),
 	themedir	VARCHAR(20),
 	timeout		INT,
-	admin		VARCHAR(8),
+	admin		VARCHAR(15),
 	PRIMARY KEY (id)
 );
 
 CREATE TABLE User (
-	id		VARCHAR(8) NOT NULL,
+	id		VARCHAR(15) NOT NULL,
 	password	CHAR(16),
 	board_id	VARCHAR(8) NOT NULL,
 	lastaccess	DATETIME,
@@ -47,7 +47,7 @@ CREATE TABLE Groups (
 );
 
 CREATE TABLE UserGroup (
-	user_id		VARCHAR(8) NOT NULL,
+	user_id		VARCHAR(15) NOT NULL,
 	group_id	VARCHAR(20) NOT NULL,
 	PRIMARY KEY (user_id, group_id)
 );
@@ -88,7 +88,7 @@ CREATE TABLE File (
 
 CREATE TABLE UnreadMessage (
 	message_id	INTEGER NOT NULL,
-	user_id		VARCHAR(8) NOT NULL,
+	user_id		VARCHAR(15) NOT NULL,
 	PRIMARY KEY (message_id, user_id)
 );
 
@@ -101,7 +101,7 @@ CREATE TABLE EditedMessage (
 
 CREATE TABLE Session (
 	id		INTEGER AUTO_INCREMENT NOT NULL,
-	user_id		VARCHAR(8),
+	user_id		VARCHAR(15),
 	board_id	VARCHAR(8),
 	expiry		DATETIME,
 	PRIMARY KEY (id)

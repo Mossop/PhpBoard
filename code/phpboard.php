@@ -266,7 +266,8 @@
 	{
 		global $peopletbl,$connection,$themeroot,$userinfo,$usertbl;
 		$query=mysql_query("select $peopletbl.*, $usertbl.id as user from "
-			."$peopletbl LEFT JOIN $usertbl ON $usertbl.person=$peopletbl.id;",$connection);
+			."$peopletbl LEFT JOIN $usertbl ON $usertbl.person=$peopletbl.id "
+			."GROUP BY $peopletbl.id;",$connection);
 		if (mysql_num_rows($query))
 		{
 			while ($contact=mysql_fetch_array($query))

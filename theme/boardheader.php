@@ -6,9 +6,12 @@
 					</tr>
 				</table>
 			</TD>
+			<TD align=right>
+				Currently logged in as <?= $loginid; ?> (<?= $userinfo['fullname']; ?>)
+			</TD>
 		</TR>
 		<TR>
-			<TD colspan=2 width=778>
+			<TD colspan=3 width=778>
 				<HR>
 <table border=0>
 	<tr>

@@ -21,3 +21,4 @@ and password again if you wish to log back in.</p>
 				</tr>
 			</table>
 	  </form>
+	</td><td>
