@@ -62,5 +62,11 @@ td.messageheader a {
 }
 
 a.openfolder {
-	color: maroon;
+	color: white;
+	background: blue;
+	text-decoration: none;
+}
+
+a.closedfolder {
+	text-decoration: none;
 }
