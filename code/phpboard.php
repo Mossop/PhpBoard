@@ -258,11 +258,11 @@
 				."AND $unreadtbl.user_id=\"$loginid\";",$connection);
 			if (mysql_num_rows($query)>0)
 			{
-				$foldername="<em>".$name['name']."</em>";
+				$foldername="<em>".htmlentities($name['name'])."</em>";
 			}
 			else
 			{
-				$foldername=$name['name'];
+				$foldername=htmlentities($name['name']);
 			}
 			print_link("folderview",$foldername,"folder=$root");
 			if (mysql_num_rows($query)>0)
@@ -510,11 +510,32 @@
 					include $themeroot."error.php";
 				}
 			}
+			else if ($function=="updateboard")
+			{
+				if (check_groups("admin,boardadmin"))
+				{
+					$query="UPDATE $boardtbl SET  ";
+					if (isset($name))
+					{
+						$query=$query."name=\"".addslashes($name)."\",";
+					}
+					if (isset($timeout))
+					{
+						$query=$query."timeout=$timeout,";
+					}
+					$query=substr($query,0,-1);
+					$query=$query." WHERE id=\"$board\";";
+					$query=mysql_query("$query",$connection);
+					$query=mysql_query("SELECT * FROM Board WHERE id=\"$board\";",$connection);
+					$boardinfo=mysql_fetch_array($query);
+					include $themeroot."boardview.php";
+				}
+			}
 			else if (($function=="addfolder")&&(isset($folder))&&(isset($name)))
 			{
 				if (check_groups("admin,folderadmin"))
 				{
-					$query=mysql_query("INSERT INTO $foldertbl (parent,board,name) VALUES ($folder,\"$board\",\"$name\");",$connection);
+					$query=mysql_query("INSERT INTO $foldertbl (parent,board,name) VALUES ($folder,\"$board\",\"".addslashes($name)."\");",$connection);
 					$folder=mysql_insert_id($connection);
 					$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
 					$folderinfo=mysql_fetch_array($query);
