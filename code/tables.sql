@@ -18,6 +18,7 @@ CREATE TABLE Board (
 	docroot		VARCHAR(50),
 	codedir		VARCHAR(20),
 	themedir	VARCHAR(20),
+	filedir		VARCHAR(20),
 	timeout		INT,
 	admin		VARCHAR(15),
 	PRIMARY KEY (id)
@@ -80,10 +81,12 @@ CREATE TABLE Message (
 );
 
 CREATE TABLE File (
+	id		INTEGER AUTO_INCREMENT NOT NULL,
 	name		VARCHAR(30) NOT NULL,
 	message		INTEGER,
 	description	VARCHAR(30),
-	PRIMARY KEY (name)
+	mimetype	VARCHAR(30),
+	PRIMARY KEY (id)
 );
 
 CREATE TABLE UnreadMessage (

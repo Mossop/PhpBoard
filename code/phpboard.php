@@ -198,9 +198,13 @@
 	}
 	
 	# Prints a form header for a function of the board.
-	function print_form_header($function,$params = "")
+	function print_form_header($function,$params = "",$enctype="")
 	{
-		echo "<form action=\"".$webroot."phpboard.php\" method=post>\n";
+		if (strlen($enctype)>0)
+		{
+			$enctype="enctype=\"$enctype\"";
+		}
+		echo "<form $enctype action=\"".$webroot."phpboard.php\" method=post>\n";
 		echo "<input type=hidden name=\"function\" value=\"$function\">\n";
 		settype($name,"string");
 		settype($val,"string");
@@ -265,6 +269,23 @@
 		}
 	}
 	
+	function msg_has_attachments($message)
+	{
+		global $filetbl,$themeroot,$connection;
+		$query=mysql_query("SELECT * FROM $filetbl WHERE message=$message;",$connection);
+		return mysql_num_rows($query);
+	}
+	
+	function list_files($message)
+	{
+		global $filetbl,$themeroot,$connection;
+		$query=mysql_query("SELECT * FROM $filetbl WHERE message=$message;",$connection);
+		while ($file=mysql_fetch_array($query))
+		{
+			include $themeroot."file.php";
+		}
+	}
+	
 	# Lists all contacts.
 	function list_contacts()
 	{
@@ -326,11 +347,11 @@
 				echo "<img src=\"".$webroot."images/closedfolder.gif\" align=top> ";
 				print_link("folderview",$foldername,"folder=$root","closedfolder");
 			}
-			echo "</td></tr>\n";
 			if (mysql_num_rows($query)>0)
 			{
 				echo " (".mysql_num_rows($query).")";
 			}
+			echo "</td></tr>\n";
 			$query=mysql_query("SELECT id FROM $foldertbl WHERE parent=$root ORDER BY name;",$connection);
 			if (mysql_num_rows($query)>0)
 			{
@@ -454,15 +475,15 @@
 	# Deletes a message and all files associated with it.
 	function delete_message($message)
 	{
-		global $msgtbl,$filetbl,$connection,$unreadtbl;
+		global $msgtbl,$filetbl,$connection,$unreadtbl,$boardinfo;
 		mysql_query("DELETE FROM $unreadtbl WHERE message_id=$message;",$connection);
 		mysql_query("DELETE FROM $msgtbl WHERE id=$message;",$connection);
-		# $query=mysql_query("SELECT name FROM $filetbl WHERE message=$message;",$connection);
-		# while ($msg=mysql_fetch_row($query))
-		#{
-			# Need to delete the file!!
-		#}
-		mysql_query("DELETE FROM $filetbl WHERE message=$msg;",$connection);
+		$query=mysql_query("SELECT name FROM $filetbl WHERE message=$message;",$connection);
+		while ($msg=mysql_fetch_array($query))
+		{
+			unlink($boardinfo['docroot']."/".$boardinfo['filedir']."/".$msg['name']);
+		}
+		mysql_query("DELETE FROM $filetbl WHERE message=$message;",$connection);
 	}
 	
 	# Deletes a thread and all messages associated with it.
@@ -496,14 +517,14 @@
 	
 	function board_view()
 	{
-		global $themeroot,$boardinfo,$folder;
+		global $themeroot,$boardinfo,$folder,$mode;
 		$folder=0;
 		include $themeroot."boardview.php";
 	}
 	
 	function folder_view($thisfolder)
 	{
-		global $connection,$themeroot,$boardinfo,$foldertbl,$folder;
+		global $connection,$themeroot,$boardinfo,$foldertbl,$folder,$mode;
 		if ($thisfolder==0)
 		{
 			board_view();
@@ -866,6 +887,30 @@
 			{
 				$folder=-1;
 				include $themeroot."changepassword.php";
+			}
+			else if (($function=="uploadfile")&&(isset($message))&&(isset($description)))
+			{
+				if (is_uploaded_file($HTTP_POST_FILES['file']['tmp_name']))
+				{
+					$newname=$HTTP_POST_FILES['file']['name'];
+					#Should check for duplicate
+					$query=mysql_query("INSERT INTO $filetbl (name,message,mimetype,description) "
+						."VALUES (\"$newname\",$message,\"".$HTTP_POST_FILES['file']['type']."\",\"$description\");",$connection);
+					$newname=$boardinfo['docroot']."/".$boardinfo['filedir']."/".$newname;
+					move_uploaded_file($HTTP_POST_FILES['file']['tmp_name'],$newname);
+					$query=mysql_query("SELECT thread FROM $msgtbl WHERE id=$message;",$connection);
+					$thread=mysql_fetch_array($query);
+					thread_view($thread['thread']);
+				}
+				else
+				{
+					error("Error uploading file");
+				}
+			}
+			else if (($function=="attachfile")&&(isset($message)))
+			{
+				$folder=-1;
+				include $themeroot."attachfile.php";
 			}
 			else if (($function=="updatepassword")&&(isset($newpass1))&&(isset($newpass2)))
 			{
