@@ -1,30 +1,21 @@
 <table border=1 cellspacing=0 cellpadding=1>
 	<tr>
-		<td colspan=2 align=left>
-			<h2>
-<?php
-
-	if (is_msg_unread($message['id']))
-	{
-		echo "<em>".$message['subject']."</em>";
-		mark_msg_read($message['id']);
-	}
-	else
-	{
-		echo $message['subject'];
-	}
-	
-?>
-			</h2>
+		<td>
+			<table>
+				<tr>
+					<td align=left>Posted by <?= $message['nickname']; ?></td>
+					<td align=right><?= mysql_to_nice($message['created']); ?></td>
+				</tr>
+				<tr>
+					<td colspan=2 width=578></td>
+				</tr>
+			</table>
 		</td>
 	</tr>
 	<tr>
-		<td align=left>Posted by <?= $message['nickname']; ?></td>
-		<td align=right>Posted at <?= mysql_to_nice($message['created']); ?></td>
-	</tr>
-	<tr>
-		<td colspan=2 align=left>
-			<?= $message['content']; ?>
+		<td width=578>
+			<?= nl2br($message['content']); ?>
 		</td>
 	</tr>
 </table>
+<br>

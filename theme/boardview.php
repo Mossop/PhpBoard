@@ -25,6 +25,29 @@
 			<? print_announcements() ?>
 		</td>
 	</tr>
+<?php
+
+	if ((is_in_group("admin"))||(is_in_group("boardadmin")))
+	{
+		$folder=0;
+?>
+	<tr>
+		<td colspan=2>
+			<hr>
+			<h2>Post a new announcement:</h2>
+		</td>
+	</tr>
+	<tr>
+		<td align=center colspan=2>
+<?php
+		include $themeroot."threadadd.php";
+?>
+		</td>
+	</tr>
+<?php
+	}
+
+?>
 </table>
 
 <?php

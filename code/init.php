@@ -13,6 +13,7 @@
 	
 	$boardtbl="Board";
 	$usertbl="User";
+	$peopletbl="People";
 	$grouptbl="Groups";
 	$foldertbl="Folder";
 	$threadtbl="Thread";

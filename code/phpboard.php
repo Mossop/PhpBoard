@@ -32,7 +32,7 @@
 	# Converts a timestamp to a nice display date.
 	function to_nice_date($timestamp)
 	{
-		return date("g:ia D, jS F, Y");
+		return date("g:ia D, jS F, Y",$timestamp);
 	}
 	
 	# Coverts a timestamp to something we can pass to mysql.
@@ -46,7 +46,7 @@
 	{
 		if (ereg("([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})",$datestr,$regs))
 		{
-			return mktime($regs[3],$regs[4],$regs[5],$regs[1],$regs[2],$regs[0]);
+			return mktime($regs[4],$regs[5],$regs[6],$regs[2],$regs[3],$regs[1]);
 		}
 		else
 		{
@@ -195,53 +195,53 @@
 		}
 	}
 	
-	# Displays the given messages using the theme.
-	function print_message_list($messages)
-	{
-		global $connection,$msgtbl,$usertbl,$themeroot;
-		while ($thisid=each($messages))
-		{
-			$query=mysql_query("SELECT $msgtbl.id,$msgtbl.created,$msgtbl.author,$usertbl.nickname,$msgtbl.subject,$msgtbl.content "
-				."FROM $msgtbl,$usertbl WHERE $msgtbl.id=".$thisid[1]." AND $usertbl.id=$msgtbl.author;",$connection);
-			$message=mysql_fetch_array($query);
-			include $themeroot."message.php";
-		}
-	}
-	
 	# Lists all threads in a folder.
 	function print_threads($folder)
 	{
+		global $threadtbl,$peopletbl,$themeroot,$connection;
+		$query=mysql_query("SELECT $threadtbl.id,$threadtbl.name,$threadtbl.created "
+			."FROM $threadtbl,$peopletbl WHERE $threadtbl.folder=$folder "
+			."AND $threadtbl.owner=$peopletbl.id ORDER BY $threadtbl.created DESC;",$connection);
+		if (mysql_num_rows($query))
+		{
+			while ($thread=mysql_fetch_array($query))
+			{
+				include $themeroot."thread.php";
+			}
+		}
 	}
 	
 	# Lists all messages in a thread.
 	function print_messages($thread)
 	{
-		global $msgtbl,$connection,$board;
-		$query=mysql_query("SELECT id FROM $msgtbl WHERE thread=$thread ORDER BY created;",$connection);
+		global $msgtbl,$connection,$peopletbl,$themeroot;
+		$query=mysql_query("SELECT $msgtbl.content,$msgtbl.created,$peopletbl.* "
+			."FROM $msgtbl,$peopletbl WHERE $msgtbl.thread=$thread "
+			."AND $msgtbl.author=$peopletbl.id "
+			."ORDER BY $msgtbl.created DESC;",$connection);
 		if (mysql_num_rows($query))
 		{
-			while ($thisid=mysql_fetch_array($query))
+			while ($message=mysql_fetch_array($query))
 			{
-				$messages[]=$thisid['id'];
+				include $themeroot."message.php";
 			}
-			print_message_list($messages);
 		}
 	}
 	
-	# Lists all announcements, newest first, by calling print_message.
+	# Lists all announcements, newest first.
 	function print_announcements()
 	{
-		global $threadtbl,$msgtbl,$connection,$board;
-		$query=mysql_query("SELECT $msgtbl.id "
-			."FROM $threadtbl,$msgtbl WHERE $threadtbl.id=$msgtbl.thread "
-			."AND $threadtbl.board=\"$board\" AND $threadtbl.folder=0 ORDER BY $msgtbl.created;",$connection);
+		global $threadtbl,$msgtbl,$connection,$board,$peopletbl,$themeroot;
+		$query=mysql_query("SELECT $msgtbl.content,$threadtbl.name,$threadtbl.created,$peopletbl.* "
+			."FROM $threadtbl,$msgtbl,$peopletbl WHERE $threadtbl.id=$msgtbl.thread "
+			."AND $threadtbl.owner=$peopletbl.id "
+			."AND $threadtbl.board=\"$board\" AND $threadtbl.folder=0 ORDER BY $msgtbl.created DESC;",$connection);
 		if (mysql_num_rows($query))
 		{
-			while ($thisid=mysql_fetch_array($query))
+			while ($announcement=mysql_fetch_array($query))
 			{
-				$messages[]=$thisid['id'];
+				include $themeroot."announcement.php";
 			}
-			print_message_list($messages);
 		}
 	}
 	
@@ -471,7 +471,9 @@
 		{
 			# Update the users last access.
 			mysql_query("UPDATE $usertbl SET lastaccess=NOW() WHERE id=\"$loginid\" AND board_id=\"$board\";",$connection);
-
+			$query=mysql_query("SELECT $peopletbl.*,$usertbl.lastaccess FROM $peopletbl,$usertbl WHERE $usertbl.person=$peopletbl.id AND $usertbl.id=\"$loginid\" AND $usertbl.board_id=\"$board\";");
+			$userinfo=mysql_fetch_array($query);
+			
 			if ($function=="logout")
 			{
 				SetCookie("session",time()-3600);
@@ -517,7 +519,7 @@
 					$query="UPDATE $boardtbl SET  ";
 					if (isset($name))
 					{
-						$query=$query."name=\"".addslashes($name)."\",";
+						$query=$query."name=\"".$name."\",";
 					}
 					if (isset($timeout))
 					{
@@ -535,7 +537,7 @@
 			{
 				if (check_groups("admin,folderadmin"))
 				{
-					$query=mysql_query("INSERT INTO $foldertbl (parent,board,name) VALUES ($folder,\"$board\",\"".addslashes($name)."\");",$connection);
+					$query=mysql_query("INSERT INTO $foldertbl (parent,board,name) VALUES ($folder,\"$board\",\"".$name."\");",$connection);
 					$folder=mysql_insert_id($connection);
 					$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
 					$folderinfo=mysql_fetch_array($query);
@@ -549,7 +551,7 @@
 					$query="UPDATE $foldertbl SET  ";
 					if (isset($name))
 					{
-						$query=$query."name=\"".addslashes($name)."\",";
+						$query=$query."name=\"".$name."\",";
 					}
 					$query=substr($query,0,-1);
 					$query=$query." WHERE id=\"$folder\";";
@@ -582,6 +584,32 @@
 					else
 					{
 						include $themeroot."error.php";
+					}
+				}
+			}
+			else if (($function=="addthread")&&(isset($folder)))
+			{
+				if (($folder!=0)||(check_groups("admin,boardadmin")))
+				{
+					if (!isset($request))
+					{
+						mysql_query("INSERT INTO $threadtbl (folder,board,name,created,owner) VALUES ($folder,\"$board\",\"$subject\",NOW(),".$userinfo['id'].");",$connection);
+						$thread=mysql_insert_id($connection);
+						mysql_query("INSERT INTO $msgtbl (thread,author,created,content) VALUES ($thread,".$userinfo['id'].",NOW(),\"$content\");",$connection);
+						if ($folder==0)
+						{
+							include $themeroot."boardview.php";
+						}
+						else
+						{
+							$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
+							$folderinfo=mysql_fetch_array($query);
+							include $themeroot."folderview.php";
+						}
+					}
+					else
+					{
+						include $themeroot."previewthread.php";
 					}
 				}
 			}

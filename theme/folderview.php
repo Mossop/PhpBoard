@@ -24,6 +24,19 @@
 			<? print_threads($folder) ?>
 		</td>
 	</tr>
+	<tr>
+		<td colspan=2>
+			<hr>
+			<h2>Post a new thread:</h2>
+		</td>
+	</tr>
+	<tr>
+		<td align=center colspan=2>
+<?php
+	include $themeroot."threadadd.php";
+?>
+		</td>
+	</tr>
 </table>
 
 <?php
@@ -55,6 +68,7 @@
 					<? print_form_header("deletefolder","folder=$folder"); ?>
 					<td>Delete this folder:</td>
 					<td colspan=2><input type="submit" value="Delete"></td>
+					</form>
 				</tr>
 				<tr>
 					<td colspan=3><hr></td>
