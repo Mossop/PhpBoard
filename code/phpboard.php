@@ -18,7 +18,7 @@
 		header("Pragma: no-cache");
 
 		# Send the default header.
-		include $themeroot."header.php";
+		include $themeroot."siteheader.php";
   }
 	
 	# Sends the footer to the browser.
@@ -26,7 +26,7 @@
 	{
 		global $themeroot,$webroot,$boardinfo;
 		# Send the default footer.
-		include $themeroot."footer.php";
+		include $themeroot."sitefooter.php";
 	}
 	
 	# Converts a timestamp to a nice display date.
@@ -154,8 +154,8 @@
 		echo "<a href=\"$url\">$description</a>";
 	}
 	
-	# Displays a given message using the theme.
-	function print_messages($messages)
+	# Displays the given messages using the theme.
+	function print_message_list($messages)
 	{
 		global $connection,$msgtbl,$usertbl,$themeroot;
 		while ($thisid=each($messages))
@@ -164,6 +164,26 @@
 				."FROM $msgtbl,$usertbl WHERE $msgtbl.id=".$thisid[1]." AND $usertbl.id=$msgtbl.author;",$connection);
 			$message=mysql_fetch_array($query);
 			include $themeroot."message.php";
+		}
+	}
+	
+	# Lists all threads in a folder.
+	function print_threads($folder)
+	{
+	}
+	
+	# Lists all messages in a thread.
+	function print_messages($thread)
+	{
+		global $msgtbl,$connection,$board;
+		$query=mysql_query("SELECT id FROM $msgtbl WHERE id=$thread ORDER BY created;",$connection);
+		if (mysql_num_rows($query))
+		{
+			while ($thisid=mysql_fetch_array($query))
+			{
+				$messages[]=$thisid['id'];
+			}
+			print_message_list($messages);
 		}
 	}
 	
@@ -180,7 +200,7 @@
 			{
 				$messages[]=$thisid['id'];
 			}
-			print_messages($messages);
+			print_message_list($messages);
 		}
 	}
 	
@@ -375,6 +395,7 @@
 			}
 				
 			send_header();
+			include $themeroot."boardheader.php";
 				
 			# Include the relevant file for the requested function
 			if ((!isset($function))||($function=="boardview"))
@@ -383,6 +404,8 @@
 			}
 			else if (($function=="folderview")&&(isset($folder)))
 			{
+				$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
+				$folderinfo=mysql_fetch_array($query);
 				include $themeroot."folderview.php";
 			}
 			else if (($function=="threadview")&&(isset($thread)))
@@ -395,6 +418,7 @@
 				include $themeroot."themefunc.php";
 			}
 			
+			include $themeroot."boardfooter.php";
 			send_footer();
 		}
 	}

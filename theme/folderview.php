@@ -1,12 +1,10 @@
-<table border=0>
-	<tr>
-		<td></td>
-		<td rowspan=2 valign=top>
-		</td>
-	</tr>
-	<tr>
-		<td valign=top>
-			<? print_root_folder_tree() ?>
-		</td>
-	</tr>
-</table>
+			<h1><?= $folderinfo['name']; ?></h1>
+			<? print_threads($folder) ?>
+<?php
+
+	if (is_in_group("admin")||is_in_group("folderadmin"))
+	{
+		echo "<hr>";
+	}
+	
+?>

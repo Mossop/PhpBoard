@@ -1,7 +1,3 @@
-<table border=0>
-	<tr>
-		<td></td>
-		<td rowspan=2 valign=top>
 			<h1><?= $boardinfo['name']; ?></h1>
 			<? print_announcements() ?>
 <?php
@@ -12,13 +8,3 @@
 	}
 	
 ?>
-		</td>
-	</tr>
-	<tr>
-		<td valign=top>
-			<? print_root_folder_tree() ?>
-			<br>
-			<? print_link("logout","Logout"); ?>
-		</td>
-	</tr>
-</table>
