@@ -1,5 +1,12 @@
 <?php
 
+	# This is the main php file of the board system. Almost all the
+	# intelligent code is included here, and this is the only page that
+	# is ever called by the web server. Its main tasks are to handle the
+	# logging in and out of the board and creating the functions needed
+	# by the display pages.
+
+	# Sends the header to the browser.
   function send_header()
   {
   	global $themeroot,$webroot,$boardinfo;
@@ -14,6 +21,7 @@
 		include $themeroot."header.php";
   }
 	
+	# Sends the footer to the browser.
 	function send_footer()
 	{
 		global $themeroot,$webroot,$boardinfo;
@@ -21,16 +29,19 @@
 		include $themeroot."footer.php";
 	}
 	
+	# Converts a timestamp to a nice display date.
 	function to_nice_date($timestamp)
 	{
 		return date("g:ia D, jS F, Y");
 	}
 	
+	# Coverts a timestamp to something we can pass to mysql.
 	function to_mysql_date($timestamp)
 	{
 		return date("Y-m-d H:i:s",$timestamp);
 	}
 	
+	# Converts a date from mysql to a timestamp.
 	function from_mysql_date($datestr)
 	{
 		if (ereg("([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})",$datestr,$regs))
@@ -43,12 +54,14 @@
 		}
 	}
 	
+	Converts a mysql date to a nice date, convenience method.
 	function mysql_to_nice($datestr)
 	{
 		return to_nice_date(from_mysql_date($datestr));
 	}
 	
-	function is_unread($messageid)
+	Asks if a particular message is unread for the current user.
+	function is_msg_unread($messageid)
 	{
 		global $unreadtbl,$connection,$loginid;
 		$query=mysql_query("SELECT message_id FROM $unreadtbl WHERE user_id=\"$loginid\" AND message_id=$messageid;",$connection);
@@ -62,13 +75,15 @@
 		}
 	}
 	
-	function mark_as_read($messageid)
+	# Marks a message as read by this user.
+	function mark_msg_read($messageid)
 	{
 		global $unreadtbl,$loginid,$connection;
 		mysql_query("DELETE FROM $unreadtbl WHERE message_id=$messageid AND user_id=\"$loginid\";",$connection);
 	}
 	
-	function is_group($group)
+	# Asks if the current user is in the specified group.
+	function is_in_group($group)
 	{
 		global $loginid,$usergrptbl,$connection;
 		$query=mysql_query("SELECT user_id FROM $usergrptbl WHERE user_id=\"$loginid\" AND group_id=\"$group\";",$connection);
@@ -82,7 +97,12 @@
 		}
 	}
 	
-	function print_link($function,$params,$description)
+	# Prints a url link to a function of the board.
+	#
+	# $function is the function to be called.
+	# $params are any extra params to pass "" for none.
+	# $description is the text of the link.
+	function print_link($function,$description,$params = "")
 	{
 		global $boardinfo,$webroot;
 		if (strlen($boardinfo['codedir'])>0)
@@ -104,6 +124,7 @@
 		echo "<a href=\"$url\">$description</a>";
 	}
 	
+	# Displays a given message using the theme.
 	function print_messages($messages)
 	{
 		global $connection,$msgtbl,$usertbl,$themeroot;
@@ -116,6 +137,7 @@
 		}
 	}
 	
+	# Lists all announcements, newest first, by calling print_message.
 	function print_announcements()
 	{
 		global $threadtbl,$msgtbl,$connection,$board;
@@ -132,6 +154,7 @@
 		}
 	}
 	
+	# Prints a tree view of folders starting from a given folder.
 	function print_folder_tree($root)
 	{
 		global $connection,$foldertbl,$unreadtbl,$msgtbl,$loginid,$threadtbl;
@@ -150,7 +173,7 @@
 			{
 				$foldername=$name['name'];
 			}
-			print_link("folderview","folder=$root",$foldername);
+			print_link("folderview",$foldername,"folder=$root");
 			if (mysql_num_rows($query)>0)
 			{
 				echo " (".mysql_num_rows($query).")";
@@ -170,10 +193,11 @@
 		}
 	}
 	
+	# Prints the entire folder tree.
 	function print_root_folder_tree()
 	{
 		global $boardinfo,$connection,$board,$foldertbl;
-		print_link("boardview","",$boardinfo['name']);
+		print_link("boardview",$boardinfo['name']);
 		$query=mysql_query("SELECT id FROM $foldertbl WHERE parent=0 AND board=\"$board\";",$connection);
 		if (mysql_num_rows($query)>0)
 		{
@@ -188,6 +212,9 @@
 		}
 	}
 	
+	# Check the login credentials and present with login pages if necessary.
+	#
+	# Returns true if everything is ok to continue.
 	function check_login()
 	{
 		global $board,$boardinfo,$session,$sessiontbl,$loginid,$passwd,$usertbl,$themeroot,$connection,$function,$webroot;
@@ -318,8 +345,6 @@
 			}
 				
 			send_header();
-				
-			echo $test;
 				
 			# Include the relevant file for the requested function
 			if ((!isset($function))||($function=="boardview"))
