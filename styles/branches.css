@@ -60,3 +60,7 @@ td.messageheader a {
 	font-size: 12px;
 	background: silver;
 }
+
+a.openfolder {
+	color: maroon;
+}

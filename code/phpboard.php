@@ -32,7 +32,8 @@
 	# Sends an error page to the user
 	function error($message)
 	{
-		global $themeroot;
+		global $themeroot,$folder;
+		$folder=-1;
 		include $themeroot."error.php";
 	}
 	
@@ -162,7 +163,7 @@
 	# $function is the function to be called.
 	# $params are any extra params to pass "" for none.
 	# $description is the text of the link.
-	function print_link($function,$description,$params = "")
+	function print_link($function,$description,$params = "", $class = "")
 	{
 		global $boardinfo,$webroot;
 		if (strlen($boardinfo['codedir'])>0)
@@ -181,7 +182,14 @@
 		{
 			$url=$url."&sessionurl=$session";
 		}
-		echo "<a href=\"$url\">$description</a>";
+		if (strlen($class)>0)
+		{
+			echo "<a href=\"$url\" class=\"$class\">$description</a>";
+		}
+		else
+		{
+			echo "<a href=\"$url\">$description</a>";
+		}
 	}
 	
 	# Prints a form header for a function of the board.
@@ -277,15 +285,6 @@
 			$query=mysql_query("SELECT $msgtbl.id FROM $unreadtbl,$msgtbl,$threadtbl "
 				."WHERE $unreadtbl.message_id=$msgtbl.id AND $msgtbl.thread=$threadtbl.id AND $threadtbl.folder=$root "
 				."AND $unreadtbl.user_id=\"$loginid\";",$connection);
-			echo "<tr><td style=\"padding-left: ".$indent."px\">";
-			if ($root==$openfolder)
-			{
-				echo "<img src=\"".$webroot."images/openfolder.gif\" align=top> ";
-			}
-			else
-			{
-				echo "<img src=\"".$webroot."images/closedfolder.gif\" align=top> ";
-			}
 			if (mysql_num_rows($query)>0)
 			{
 				$foldername="<em>".htmlentities($name['name'])."</em>";
@@ -294,18 +293,28 @@
 			{
 				$foldername=htmlentities($name['name']);
 			}
-			print_link("folderview",$foldername,"folder=$root");
-			echo "</td></tr>";
+			echo "<tr><td style=\"padding-left: ".$indent."px\">";
+			if ($root==$openfolder)
+			{
+				echo "<img src=\"".$webroot."images/openfolder.gif\" align=top> ";
+				print_link("folderview",$foldername,"folder=$root","openfolder");
+			}
+			else
+			{
+				echo "<img src=\"".$webroot."images/closedfolder.gif\" align=top> ";
+				print_link("folderview",$foldername,"folder=$root","closedfolder");
+			}
+			echo "</td></tr>\n";
 			if (mysql_num_rows($query)>0)
 			{
 				echo " (".mysql_num_rows($query).")";
 			}
-			$query=mysql_query("SELECT id FROM $foldertbl WHERE parent=$root;",$connection);
+			$query=mysql_query("SELECT id FROM $foldertbl WHERE parent=$root ORDER BY name;",$connection);
 			if (mysql_num_rows($query)>0)
 			{
 				while ($folder = mysql_fetch_array($query))
 				{
-					print_folder_tree($folder['id'],$indent+10);
+					print_folder_tree($folder['id'],$openfolder,$indent+18);
 				}
 			}
 		}
@@ -319,19 +328,20 @@
 		if ($openfolder==0)
 		{
 			echo "<img src=\"".$webroot."images/openfolder.gif\" align=top> ";
+			print_link("boardview",$boardinfo['name'],"","openfolder");
 		}
 		else
 		{
 			echo "<img src=\"".$webroot."images/closedfolder.gif\" align=top> ";
+			print_link("boardview",$boardinfo['name'],"","closedfolder");
 		}
-		print_link("boardview",$boardinfo['name']);
-		echo "</td></tr>";
-		$query=mysql_query("SELECT id FROM $foldertbl WHERE parent=0 AND board=\"$board\";",$connection);
+		echo "</td></tr>\n";
+		$query=mysql_query("SELECT id FROM $foldertbl WHERE parent=0 AND board=\"$board\" ORDER BY name;",$connection);
 		if (mysql_num_rows($query)>0)
 		{
 			while ($folder = mysql_fetch_array($query))
 			{
-				print_folder_tree($folder['id'],$openfolder,10);
+				print_folder_tree($folder['id'],$openfolder,18);
 			}
 		}
 	}
@@ -464,22 +474,24 @@
 	
 	function board_view()
 	{
-		global $themeroot,$boardinfo;
+		global $themeroot,$boardinfo,$folder;
+		$folder=0;
 		include $themeroot."boardview.php";
 	}
 	
-	function folder_view($folder)
+	function folder_view($thisfolder)
 	{
-		global $connection,$themeroot,$boardinfo,$foldertbl;
-		if ($folder==0)
+		global $connection,$themeroot,$boardinfo,$foldertbl,$folder;
+		if ($thisfolder==0)
 		{
 			board_view();
 		}
 		else
 		{
-			$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
+			$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$thisfolder;",$connection);
 			if ($folderinfo=mysql_fetch_array($query))
 			{
+				$folder=$thisfolder;
 				include $themeroot."folderview.php";
 			}
 			else
@@ -491,10 +503,11 @@
 	
 	function thread_view($thread)
 	{
-		global $connection,$themeroot,$threadtbl,$boardinfo;
+		global $connection,$themeroot,$threadtbl,$boardinfo,$folder;
 		$query=mysql_query("SELECT * FROM $threadtbl WHERE id=$thread;",$connection);
 		if ($threadinfo=mysql_fetch_array($query))
 		{
+			$folder=$threadinfo['folder'];
 			include $themeroot."threadview.php";
 		}
 		else
@@ -566,6 +579,7 @@
 			else if ($function=="contactlist")
 			{
 				include $themeroot."contactlist.php";
+				$folder=-1;
 			}
 			else if (($function=="folderview")&&(isset($folder)))
 			{
@@ -660,6 +674,7 @@
 			}
 			else if (($function=="editmessage")&&(isset($message)))
 			{
+				$folder=-1;
 				$query=mysql_query("SELECT $msgtbl.id,$msgtbl.content,$msgtbl.created,$msgtbl.author "
 					."FROM $msgtbl WHERE $msgtbl.id=$message;",$connection);
 				if (mysql_num_rows($query))
@@ -685,6 +700,7 @@
 				}
 				else
 				{
+					$folder=-1;
 					include $themeroot."noaccess.php";
 				}
 			}
@@ -699,6 +715,7 @@
 				}
 				else
 				{
+					$folder=-1;
 					include $themeroot."noaccess.php";
 				}
 			}
@@ -711,20 +728,14 @@
 						$query=mysql_query("INSERT INTO $threadtbl (folder,board,name,created,owner) VALUES ($folder,\"$board\",\"$subject\",NOW(),".$userinfo['id'].");",$connection);
 						$thread=mysql_insert_id($connection);
 						mysql_query("INSERT INTO $msgtbl (thread,author,created,content) VALUES ($thread,".$userinfo['id'].",NOW(),\"$content\");",$connection);
-						if ($folder==0)
-						{
-							include $themeroot."boardview.php";
-						}
-						else
-						{
-							$mesg=mysql_insert_id($connection);
-							mysql_query("INSERT INTO $unreadtbl (user_id,message_id) "
-								."SELECT id,$mesg FROM $usertbl WHERE board_id=\"$board\" AND id!=\"$loginid\";",$connection);
-							folder_view($folder);
-						}
+						$mesg=mysql_insert_id($connection);
+						mysql_query("INSERT INTO $unreadtbl (user_id,message_id) "
+							."SELECT id,$mesg FROM $usertbl WHERE board_id=\"$board\" AND id!=\"$loginid\";",$connection);
+						folder_view($folder);
 					}
 					else
 					{
+						$folder=-1;
 						include $themeroot."previewthread.php";
 					}
 				}
@@ -741,11 +752,13 @@
 				}
 				else
 				{
+					$folder=-1;
 					include $themeroot."previewmessage.php";
 				}
 			}
 			else if ($function=="changepassword")
 			{
+				$folder=-1;
 				include $themeroot."changepassword.php";
 			}
 			else if (($function=="updatepassword")&&(isset($newpass1))&&(isset($newpass2)))
