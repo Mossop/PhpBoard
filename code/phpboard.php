@@ -526,7 +526,7 @@
 					$query=substr($query,0,-1);
 					$query=$query." WHERE id=\"$board\";";
 					$query=mysql_query("$query",$connection);
-					$query=mysql_query("SELECT * FROM Board WHERE id=\"$board\";",$connection);
+					$query=mysql_query("SELECT * FROM $boardtbl WHERE id=\"$board\";",$connection);
 					$boardinfo=mysql_fetch_array($query);
 					include $themeroot."boardview.php";
 				}
@@ -537,6 +537,23 @@
 				{
 					$query=mysql_query("INSERT INTO $foldertbl (parent,board,name) VALUES ($folder,\"$board\",\"".addslashes($name)."\");",$connection);
 					$folder=mysql_insert_id($connection);
+					$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
+					$folderinfo=mysql_fetch_array($query);
+					include $themeroot."folderview.php";
+				}
+			}
+			else if (($function=="updatefolder")&&(isset($folder)))
+			{
+				if (check_groups("admin,folderadmin"))
+				{
+					$query="UPDATE $foldertbl SET  ";
+					if (isset($name))
+					{
+						$query=$query."name=\"".addslashes($name)."\",";
+					}
+					$query=substr($query,0,-1);
+					$query=$query." WHERE id=\"$folder\";";
+					$query=mysql_query("$query",$connection);
 					$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
 					$folderinfo=mysql_fetch_array($query);
 					include $themeroot."folderview.php";
