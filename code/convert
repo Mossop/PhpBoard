@@ -1,0 +1,11 @@
+INSERT INTO PhpBoard.Thread (folder,board,name,created,owner) select
+**folder**,'wswym',MsgTitle,Date,PhpBoard.People.id from Message,Users,PhpBoard.People
+where Message.ID=**id** and Message.AuthorID=Users.AuthorID and
+Users.Nickname=PhpBoard.People.nickname;
+
+INSERT INTO PhpBoard.Message (thread,author,created,content) select
+LAST_INSERT_ID(),PhpBoard.People.id,Date,MsgText from
+Message,Users,PhpBoard.People where (Message.ID=**id** or
+Message.Thread=**id**)
+and Message.AuthorID=Users.AuthorID and
+Users.Nickname=PhpBoard.People.nickname;
