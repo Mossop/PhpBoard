@@ -200,6 +200,12 @@
 				$loginid=mysql_result($query,0,0)
 				if ($function=="logout")
 				{
+					mysql_query("DELETE FROM $sessiontbl WHERE id=$session;",$connection);
+					SetCookie("session","",time()-3600);
+					send_header();
+					include $themedir."logout.php";
+					send_footer();
+					return false;
 				}
 				else
 				{
@@ -225,16 +231,18 @@
 				$query=mysql_query("SELECT id FROM $usertbl WHERE id=\"$loginid\" AND password=PASSWORD(\"$passwd\") AND board_id=\"$board\";",$connection);
 				if (mysql_num_rows($query)==1)
 				{
+					$expiry=to_mysql_date(time()+$boardinfo['timeout']);
 					# Check for an old session that can be reused
 					$query=mysql_query("SELECT id FROM $sessiontbl WHERE user_id=\"$loginid\" AND board_id=\"$board\";",$connection);
 					if (mysql_num_rows($query)>0)
 					{
 						$session=mysql_result($query,0,0);
+						mysql_query("UPDATE $sessiontbl SET expiry=\"$expiry\" WHERE id=$session;",$connection);
 					}
 					else
 					{
 						# Create a session
-						mysql_query("INSERT INTO $sessiontbl (user_id,board_id) VALUES (\"$loginid\",\"$board\");",$connection);
+						mysql_query("INSERT INTO $sessiontbl (user_id,board_id,expiry) VALUES (\"$loginid\",\"$board\",\"$expiry\");",$connection);
 						$session=mysql_insert_id($connection);
 					}
 					SetCookie("session",$session);
@@ -300,66 +308,39 @@
 		
 		if (check_login())
 		{
-		}
-		
-		if (isset($session))
-		{
-			# Check the existence of the session.
-			$query=mysql_query("SELECT user_id FROM $sessiontbl WHERE id=$session AND board_id=\"$board\";",$connection);
-			if ((mysql_num_rows($query)>0)&&($loginid=mysql_result($query,0,0)))
-			{
-				# Update the expiry time of the session.
-				$expiry=time()+$boardinfo['timeout']*60;
-				$expiry=to_mysql_date($expiry);
-				mysql_query("UPDATE $sessiontbl SET expiry=\"$expiry\" WHERE id=$session;",$connection);
-				
-				# Update the users last access.
-				mysql_query("UPDATE $usertbl SET lastaccess=NOW() WHERE id=\"$loginid\" AND board_id=\"$board\";",$connection);
+			# Update the users last access.
+			mysql_query("UPDATE $usertbl SET lastaccess=NOW() WHERE id=\"$loginid\" AND board_id=\"$board\";",$connection);
 
-				if ($function=="logout")
-				{
-					SetCookie("session",time()-3600);
-					mysql_query("DELETE FROM $sessiontbl WHERE user_id=\"$loginid\" AND board_id=\"$board\";",$connection);
-				}
+			if ($function=="logout")
+			{
+				SetCookie("session",time()-3600);
+				mysql_query("DELETE FROM $sessiontbl WHERE user_id=\"$loginid\" AND board_id=\"$board\";",$connection);
+			}
 				
-				send_header();
+			send_header();
 				
-				echo $test;
+			echo $test;
 				
-				# Include the relevant file for the requested function
-				if ((!isset($function))||($function=="boardview"))
-				{
-					include $themeroot."boardview.php";
-				}
-				else if (($function=="folderview")&&(isset($folder)))
-				{
-					include $themeroot."folderview.php";
-				}
-				else if (($function=="threadview")&&(isset($thread)))
-				{
-					include $themeroot."threadview.php";
-				}
-				else if ($function=="logout")
-				{
-					include $themeroot."logout.php";
-				}
-				else
-				{
-					include $themeroot."error.php";
-				}
+			# Include the relevant file for the requested function
+			if ((!isset($function))||($function=="boardview"))
+			{
+				include $themeroot."boardview.php";
+			}
+			else if (($function=="folderview")&&(isset($folder)))
+			{
+				include $themeroot."folderview.php";
+			}
+			else if (($function=="threadview")&&(isset($thread)))
+			{
+				include $themeroot."threadview.php";
 			}
 			else
 			{
-				# User must relogin.
-				SetCookie("session","",time()-3600);
-				send_header();
-				include $themeroot."relogin.php";
+				include $themeroot."error.php";
 			}
+			
+			send_footer();
 		}
-		send_footer();
-	
-		# Make sure we have unlocked any tables we used.
-		mysql_query("UNLOCK TABLES;",$connection);	
 	}
 	else
 	{
