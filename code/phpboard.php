@@ -661,7 +661,7 @@
 			}
 			else if (($function=="updatecontact")&&(isset($person)))
 			{
-				if (check_groups("contactadmin"))
+				if ((is_in_group("contactadmin"))||($person==$userinfo['id']))
 				{
 					$query="UPDATE $peopletbl SET  ";
 					if (isset($fullname))
@@ -685,6 +685,11 @@
 					$query=mysql_query("$query",$connection);
 					include $themeroot."contactlist.php";
 					$folder=-1;
+				}
+				else
+				{
+					$folder=-1;
+					include $themeroot."noaccess.php";
 				}
 			}
 			else if ($function=="updateboard")
@@ -734,8 +739,6 @@
 			}
 			else if (($function=="updatemessage")&&(isset($message)))
 			{
-				if (check_groups("messageadmin"))
-				{
 					$query=mysql_query("SELECT thread FROM $msgtbl WHERE id=$message",$connection);
 					$thread=mysql_fetch_array($query);
 					$query="UPDATE $msgtbl SET  ";
@@ -748,7 +751,6 @@
 					$query=mysql_query($query,$connection);
 					mysql_query("INSERT INTO $editedtbl (message_id,person,altered) VALUES ($message,".$userinfo['id'].",NOW());",$connection);
 					thread_view($thread['thread']);
-				}
 			}
 			else if (($function=="deletecontact")&&(isset($person)))
 			{
