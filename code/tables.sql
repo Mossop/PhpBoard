@@ -42,13 +42,13 @@ CREATE TABLE People (
 );
 
 CREATE TABLE Groups (
-	id		VARCHAR(8) NOT NULL,
+	id		VARCHAR(20) NOT NULL,
 	PRIMARY KEY (id)
 );
 
 CREATE TABLE UserGroup (
 	user_id		VARCHAR(8) NOT NULL,
-	group_id	VARCHAR(8) NOT NULL,
+	group_id	VARCHAR(20) NOT NULL,
 	PRIMARY KEY (user_id, group_id)
 );
 
@@ -82,7 +82,7 @@ CREATE TABLE Message (
 CREATE TABLE File (
 	name		VARCHAR(30) NOT NULL,
 	message		INTEGER,
-	desription	VARCHAR(30),
+	description	VARCHAR(30),
 	PRIMARY KEY (name)
 );
 

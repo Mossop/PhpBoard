@@ -23,9 +23,10 @@
 		<td colspan=2 width=578>
 			<table border=0 cellspacing=1>
 				<tr>
-					<td width=378><b>Thread</b></td>
-					<td><b>Author</b></td>
-					<td align=right><b>Started</b></td>
+					<td width=358><b>Thread</b></td>
+					<td width=50><b>Author</b></td>
+					<td width=150 align=right><b>Started</b></td>
+					<td width=20></td>
 				</tr>
 				<? print_threads($folder) ?>
 			</table>

@@ -8,7 +8,14 @@
 					<td align=right><?= mysql_to_nice($message['created']); ?></td>
 				</tr>
 				<tr>
-					<td colspan=2 width=578></td>
+					<td colspan=2 width=578>
+						<?php
+							if ((is_in_group("admin"))||(is_in_group("messageadmin"))||($message['author']==$userinfo['id']))
+							{
+								print_link("deletemessage","Delete","message=".$message['id']);
+							}
+						?>
+					</td>
 				</tr>
 			</table>
 		</td>

@@ -198,8 +198,8 @@
 	# Lists all threads in a folder.
 	function print_threads($folder)
 	{
-		global $threadtbl,$peopletbl,$themeroot,$connection,$peoplefields;
-		$query=mysql_query("SELECT $threadtbl.id,$threadtbl.name,$threadtbl.created,$peoplefields "
+		global $threadtbl,$peopletbl,$themeroot,$connection,$peoplefields,$userinfo;
+		$query=mysql_query("SELECT $threadtbl.id,$threadtbl.name,$threadtbl.created,$threadtbl.owner,$peoplefields "
 			."FROM $threadtbl,$peopletbl WHERE $threadtbl.folder=$folder "
 			."AND $threadtbl.owner=$peopletbl.id ORDER BY $threadtbl.created DESC;",$connection);
 		if (mysql_num_rows($query))
@@ -214,8 +214,8 @@
 	# Lists all messages in a thread.
 	function print_messages($thread)
 	{
-		global $msgtbl,$connection,$peopletbl,$themeroot,$peoplefields;
-		$query=mysql_query("SELECT $msgtbl.id,$msgtbl.content,$msgtbl.created,$peoplefields "
+		global $msgtbl,$connection,$peopletbl,$themeroot,$peoplefields,$userinfo;
+		$query=mysql_query("SELECT $msgtbl.id,$msgtbl.content,$msgtbl.created,$msgtbl.author,$peoplefields "
 			."FROM $msgtbl,$peopletbl WHERE $msgtbl.thread=$thread "
 			."AND $msgtbl.author=$peopletbl.id "
 			."ORDER BY $msgtbl.created;",$connection);
@@ -231,7 +231,7 @@
 	# Lists all announcements, newest first.
 	function print_announcements()
 	{
-		global $threadtbl,$msgtbl,$connection,$board,$peopletbl,$themeroot,$peoplefields;
+		global $threadtbl,$msgtbl,$connection,$board,$peopletbl,$themeroot,$peoplefields,$userinfo;
 		$query=mysql_query("SELECT $msgtbl.content,$threadtbl.name,$threadtbl.created,$peoplefields "
 			."FROM $threadtbl,$msgtbl,$peopletbl WHERE $threadtbl.id=$msgtbl.thread "
 			."AND $threadtbl.owner=$peopletbl.id "
@@ -389,13 +389,14 @@
 	# Deletes a message and all files associated with it.
 	function delete_message($message)
 	{
-		global $msgtbl,$filetbl,$connection;
-		mysql_query("DELETE FROM $msgtbl WHERE id=$msg;",$connection);
-		$query=mysql_query("SELECT name FROM $filetbl WHERE message=$msg;",$connection);
-		while ($msg=mysql_fetch_row($query))
-		{
+		global $msgtbl,$filetbl,$connection,$unreadtbl;
+		mysql_query("DELETE FROM $unreadtbl WHERE message_id=$message;",$connection);
+		mysql_query("DELETE FROM $msgtbl WHERE id=$message;",$connection);
+		# $query=mysql_query("SELECT name FROM $filetbl WHERE message=$message;",$connection);
+		# while ($msg=mysql_fetch_row($query))
+		#{
 			# Need to delete the file!!
-		}
+		#}
 		mysql_query("DELETE FROM $filetbl WHERE message=$msg;",$connection);
 	}
 	
@@ -587,6 +588,40 @@
 					}
 				}
 			}
+			else if (($function=="deletemessage")&&(isset($message)))
+			{
+				$query=mysql_query("SELECT author,thread FROM $msgtbl WHERE id=$message;",$connection);
+				$msginfo=mysql_fetch_array($query);
+				if ((is_in_group("admin"))||(is_in_group("messageadmin"))||($msginfo[author]==$userinfo['id']))
+				{
+					delete_message($message);
+					$query=mysql_query("SELECT * FROM $threadtbl WHERE id=".$msginfo['thread'].";",$connection);
+					$threadinfo=mysql_fetch_array($query);
+					$thread=$msginfo['thread'];
+					include $themeroot."threadview.php";
+				}
+				else
+				{
+					include $themeroot."noaccess.php";
+				}
+			}
+			else if (($function=="deletethread")&&(isset($thread)))
+			{
+				$query=mysql_query("SELECT owner,folder FROM $threadtbl WHERE id=$thread;",$connection);
+				$threadinfo=mysql_fetch_array($query);
+				if ((is_in_group("admin"))||(is_in_group("messageadmin"))||($threadinfo['owner']==$userinfo['id']))
+				{
+					delete_thread($thread);
+					$folder=$threadinfo['folder'];
+					$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
+					$folderinfo=mysql_fetch_array($query);
+					include $themeroot."folderview.php";
+				}
+				else
+				{
+					include $themeroot."noaccess.php";
+				}
+			}
 			else if (($function=="addthread")&&(isset($folder)))
 			{
 				if (($folder!=0)||(check_groups("admin,boardadmin")))
@@ -596,18 +631,15 @@
 						$query=mysql_query("INSERT INTO $threadtbl (folder,board,name,created,owner) VALUES ($folder,\"$board\",\"$subject\",NOW(),".$userinfo['id'].");",$connection);
 						$thread=mysql_insert_id($connection);
 						mysql_query("INSERT INTO $msgtbl (thread,author,created,content) VALUES ($thread,".$userinfo['id'].",NOW(),\"$content\");",$connection);
-						$mesg=mysql_insert_id($connection);
-						$query=mysql_query("SELECT id FROM $usertbl WHERE board_id=\"$board\" AND id!=\"$loginid\";",$connection);
-						while ($name=mysql_fetch_array($query))
-						{
-							mysql_query("INSERT INTO $unreadtbl (user_id,message_id) VALUES (\"".$name['id']."\",$mesg);",$connection);
-						}
 						if ($folder==0)
 						{
 							include $themeroot."boardview.php";
 						}
 						else
 						{
+							$mesg=mysql_insert_id($connection);
+							mysql_query("INSERT INTO $unreadtbl (user_id,message_id) "
+								."SELECT id,$mesg FROM $usertbl WHERE board_id=\"$board\" AND id!=\"$loginid\";",$connection);
 							$query=mysql_query("SELECT * FROM $foldertbl WHERE id=$folder;",$connection);
 							$folderinfo=mysql_fetch_array($query);
 							include $themeroot."folderview.php";
@@ -625,11 +657,8 @@
 				{
 					mysql_query("INSERT INTO $msgtbl (thread,author,created,content) VALUES ($thread,".$userinfo['id'].",NOW(),\"$content\");",$connection);
 					$mesg=mysql_insert_id($connection);
-					$query=mysql_query("SELECT id FROM $usertbl WHERE board_id=\"$board\" AND id!=\"$loginid\";",$connection);
-					while ($name=mysql_fetch_array($query))
-					{
-						mysql_query("INSERT INTO $unreadtbl (user_id,message_id) VALUES (\"".$name['id']."\",$mesg);",$connection);
-					}
+					mysql_query("INSERT INTO $unreadtbl (user_id,message_id) "
+						."SELECT id,$mesg FROM $usertbl WHERE board_id=\"$board\" AND id!=\"$loginid\";",$connection);
 					$query=mysql_query("SELECT * FROM $threadtbl WHERE id=$thread;",$connection);
 					$threadinfo=mysql_fetch_array($query);
 					include $themeroot."threadview.php";
