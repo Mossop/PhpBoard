@@ -8,6 +8,7 @@
 		<td><b>Name</b></td>
 		<td><b>Email</b></td>
 		<td><b>Phone</b></td>
+		<td></td>
 	</tr>
 			<? list_contacts(); ?>
 </table>

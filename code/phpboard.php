@@ -32,6 +32,7 @@
 	# Sends an error page to the user
 	function error($message)
 	{
+		global $themeroot;
 		include $themeroot."error.php";
 	}
 	
@@ -122,7 +123,7 @@
 	function is_in_group($group)
 	{
 		global $loginid,$usergrptbl,$connection;
-		$query=mysql_query("SELECT user_id FROM $usergrptbl WHERE user_id=\"$loginid\" AND group_id=\"$group\" OR group_id=\"admin\";",$connection);
+		$query=mysql_query("SELECT user_id FROM $usergrptbl WHERE user_id=\"$loginid\" AND (group_id=\"$group\" OR group_id=\"admin\");",$connection);
 		if (mysql_num_rows($query)>0)
 		{
 			return true;
@@ -254,7 +255,7 @@
 	# Lists all contacts.
 	function list_contacts()
 	{
-		global $peopletbl,$connection,$themeroot;
+		global $peopletbl,$connection,$themeroot,$userinfo;
 		$query=mysql_query("SELECT * FROM $peopletbl;",$connection);
 		if (mysql_num_rows($query))
 		{
@@ -266,9 +267,9 @@
 	}
 	
 	# Prints a tree view of folders starting from a given folder.
-	function print_folder_tree($root)
+	function print_folder_tree($root, $openfolder=-1, $indent=0)
 	{
-		global $connection,$foldertbl,$unreadtbl,$msgtbl,$loginid,$threadtbl;
+		global $connection,$foldertbl,$webroot,$unreadtbl,$msgtbl,$loginid,$threadtbl;
 		$query=mysql_query("SELECT name FROM $foldertbl WHERE id=$root;",$connection);
 		if (mysql_num_rows($query)>0)
 		{
@@ -276,6 +277,15 @@
 			$query=mysql_query("SELECT $msgtbl.id FROM $unreadtbl,$msgtbl,$threadtbl "
 				."WHERE $unreadtbl.message_id=$msgtbl.id AND $msgtbl.thread=$threadtbl.id AND $threadtbl.folder=$root "
 				."AND $unreadtbl.user_id=\"$loginid\";",$connection);
+			echo "<tr><td style=\"padding-left: ".$indent."px\">";
+			if ($root==$openfolder)
+			{
+				echo "<img src=\"".$webroot."images/openfolder.gif\" align=top> ";
+			}
+			else
+			{
+				echo "<img src=\"".$webroot."images/closedfolder.gif\" align=top> ";
+			}
 			if (mysql_num_rows($query)>0)
 			{
 				$foldername="<em>".htmlentities($name['name'])."</em>";
@@ -285,6 +295,7 @@
 				$foldername=htmlentities($name['name']);
 			}
 			print_link("folderview",$foldername,"folder=$root");
+			echo "</td></tr>";
 			if (mysql_num_rows($query)>0)
 			{
 				echo " (".mysql_num_rows($query).")";
@@ -292,34 +303,36 @@
 			$query=mysql_query("SELECT id FROM $foldertbl WHERE parent=$root;",$connection);
 			if (mysql_num_rows($query)>0)
 			{
-				echo "<ul>\n";
 				while ($folder = mysql_fetch_array($query))
 				{
-					echo "<li>";
-					print_folder_tree($folder['id']);
-					echo "</li>\n";
+					print_folder_tree($folder['id'],$indent+10);
 				}
-				echo "</ul>\n";
 			}
 		}
 	}
 	
 	# Prints the entire folder tree.
-	function print_root_folder_tree()
+	function print_root_folder_tree($openfolder=-1)
 	{
-		global $boardinfo,$connection,$board,$foldertbl;
+		global $boardinfo,$connection,$board,$foldertbl,$webroot;
+		echo "<tr><td style=\"padding-left: ".$indent."px\">";
+		if ($openfolder==0)
+		{
+			echo "<img src=\"".$webroot."images/openfolder.gif\" align=top> ";
+		}
+		else
+		{
+			echo "<img src=\"".$webroot."images/closedfolder.gif\" align=top> ";
+		}
 		print_link("boardview",$boardinfo['name']);
+		echo "</td></tr>";
 		$query=mysql_query("SELECT id FROM $foldertbl WHERE parent=0 AND board=\"$board\";",$connection);
 		if (mysql_num_rows($query)>0)
 		{
-			echo "<ul>\n";
 			while ($folder = mysql_fetch_array($query))
 			{
-				echo "<li>";
-				print_folder_tree($folder['id']);
-				echo "</li>\n";
+				print_folder_tree($folder['id'],$openfolder,10);
 			}
-			echo "</ul>\n";
 		}
 	}
 	
@@ -729,6 +742,38 @@
 				else
 				{
 					include $themeroot."previewmessage.php";
+				}
+			}
+			else if ($function=="changepassword")
+			{
+				include $themeroot."changepassword.php";
+			}
+			else if (($function=="updatepassword")&&(isset($newpass1))&&(isset($newpass2)))
+			{
+				if ($newpass1==$newpass2)
+				{
+					if ((isset($user))&&(is_in_group("useradmin")))
+					{
+						mysql_query("UPDATE $usertbl SET password=PASSWORD(\"$newpass1\") WHERE id=\"$user\";",$connection);
+						board_view();
+					}
+					else if (isset($oldpass))
+					{
+						$query=mysql_query("SELECT * FROM $usertbl WHERE id=\"$loginid\" AND password=PASSWORD(\"$oldpass\");",$connection);
+						if (mysql_num_rows($query)==1)
+						{
+							mysql_query("UPDATE $usertbl SET password=PASSWORD(\"$newpass1\") WHERE id=\"$loginid\";",$connection);
+							board_view();
+						}
+						else
+						{
+							error("You entered the wrong password.");
+						}
+					}
+				}
+				else
+				{
+					error("You retyped the wrong password.");
 				}
 			}
 			else

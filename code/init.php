@@ -28,5 +28,5 @@
 	# and thread viewers.
 	
 	$peoplefields="$peopletbl.fullname,$peopletbl.email,$peopletbl.nickname,$peopletbl.phone";
-		
+
 ?>
