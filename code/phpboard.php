@@ -176,7 +176,7 @@
 	function print_messages($thread)
 	{
 		global $msgtbl,$connection,$board;
-		$query=mysql_query("SELECT id FROM $msgtbl WHERE id=$thread ORDER BY created;",$connection);
+		$query=mysql_query("SELECT id FROM $msgtbl WHERE thread=$thread ORDER BY created;",$connection);
 		if (mysql_num_rows($query))
 		{
 			while ($thisid=mysql_fetch_array($query))
@@ -410,6 +410,8 @@
 			}
 			else if (($function=="threadview")&&(isset($thread)))
 			{
+				$query=mysql_query("SELECT * FROM $threadtbl WHERE id=$thread;",$connection);
+				$threadinfo=mysql_fetch_array($query);
 				include $themeroot."threadview.php";
 			}
 			else
