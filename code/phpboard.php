@@ -610,10 +610,11 @@
 				$query=mysql_query("SELECT * FROM $filetbl WHERE id=$file;",$connection);
 				if ($fileinfo=mysql_fetch_array($query))
 				{
-					header("Location: ".$boardinfo['webroot']."/".$boardinfo['filedir']."/".$fileinfo['name']);
-					#Header("Content-type: ".$fileinfo['mimetype']);
-					#$fn=fopen($boardinfo['docroot']."/".$boardinfo['filedir']."/".$fileinfo['name'],"r");
-					#fpassthru($fn);
+					#header("Location: ".$boardinfo['webroot']."/".$boardinfo['filedir']."/".$fileinfo['name']);
+					Header("Content-type: ".$fileinfo['mimetype']);
+					Header("Content-Disposition: attachment; filename=\"".$fileinfo['name']."\"");
+					$fn=fopen($boardinfo['docroot']."/".$boardinfo['filedir']."/".$fileinfo['name'],"r");
+					fpassthru($fn);
 				}
 				else
 				{
